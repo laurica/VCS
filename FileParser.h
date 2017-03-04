@@ -8,7 +8,7 @@
 class FileParser 
 {
 public:
-    void readFile(std::string fileName, std::vector<Line>& linesInFile);
+    static void readFile(const std::string fileName, std::vector<Line>& linesInFile);
 };
 
 #endif

@@ -13,8 +13,8 @@ protected:
     std::string str;
 
 public:
-    Line(int i, std::string str);
-    bool equals(Line& other);
+    Line(const int i, const std::string str);
+    bool equals(const Line& other) const;
     int getNumber() const;
     std::string getString() const;
     //virtual std::string toString() const;

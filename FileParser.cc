@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void FileParser::readFile(string fileName, vector<Line>& linesInFile) 
+void FileParser::readFile(const string fileName, vector<Line>& linesInFile) 
 {
     ifstream infile(fileName.c_str());
     string line;

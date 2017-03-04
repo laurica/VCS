@@ -3,9 +3,9 @@
 
 using namespace std;
 
-Line::Line(int number, string str) : number(number), str(str) {}
+Line::Line(const int number, const string str) : number(number), str(str) {}
 
-bool Line::equals(Line& other) {
+bool Line::equals(const Line& other) const {
     return str == other.str;
 }
 
