@@ -65,12 +65,12 @@ static VectorToSelectFrom selectFirst(vector<Line>& subsequence,
 template <class T>
 static void takeAllConsecutive(vector<T>& sequence, typename vector<T>::iterator& it) {
   int curNum = it->getNumber();
-  cout << it->getString() << endl;
+  cout << it->getStringToPrint() << endl;
   ++it;
 
   while (it != sequence.end() && it->getNumber() == curNum + 1) {
     ++curNum;
-    cout << it->getString() << endl;
+    cout << it->getStringToPrint() << endl;
     ++it;
   }
 }
