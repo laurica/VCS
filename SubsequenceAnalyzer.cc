@@ -1,158 +1,41 @@
+#include "Diff.h"
+#include "DiffBuilder.h"
+#include "DiffElement.h"
 #include "SubsequenceAnalyzer.h"
-#include <algorithm>
-#include <iostream>
-#include "DeletedLine.h"
 
 using namespace std;
 
-enum VectorToSelectFrom {
-    SUBSEQUENCE,
-    INSERTIONS,
-    DELETIONS
-};
-
-static VectorToSelectFrom selectFirstFromThree(vector<Line>::iterator subIt,
-                                               vector<NewLine>::iterator newIt,
-                                               vector<DeletedLine>::iterator delIt) {
-    if (subIt->getNumber() <= newIt->getNumber() && 
-        subIt->getNumber() <= delIt->getNumber()) {
-        return SUBSEQUENCE;
-    }
-
-    if (delIt->getNumber() <= newIt->getNumber()) {
-        return DELETIONS;
-    }
-
-    return INSERTIONS;
-}
-
-static VectorToSelectFrom selectFirst(vector<Line>& subsequence,
-				      vector<NewLine>& insertions,
-				      vector<DeletedLine>& deletions,
-				      vector<Line>::iterator subIt, 
-				      vector<NewLine>::iterator newIt, 
-				      vector<DeletedLine>::iterator delIt) {
-  if (subIt != subsequence.end()) {
-    if (newIt != insertions.end()) {
-      if (delIt != deletions.end()) {
-	// all three
-	return selectFirstFromThree(subIt, newIt, delIt);
-      }
-
-      // subIt or newIt
-      return (subIt->getNumber() <= newIt->getNumber()) ? SUBSEQUENCE : INSERTIONS;
-    }
-
-    if (delIt != deletions.end()) {
-      return subIt->getNumber() <= delIt->getNumber() ? SUBSEQUENCE : DELETIONS;
-    }
-
-    return SUBSEQUENCE;
-  } else {
-    // insertions or deletions
-    if (newIt != insertions.end()) {
-      if (delIt != deletions.end()) {
-	return delIt->getNumber() <= delIt->getNumber() ? DELETIONS : INSERTIONS;
-      }
-
-      return INSERTIONS;
-    }
-
-    return DELETIONS;
-  }
-}
-
-template <class T>
-static void takeAllConsecutive(vector<T>& sequence, typename vector<T>::iterator& it) {
-  int curNum = it->getNumber();
-  cout << it->getStringToPrint() << endl;
-  ++it;
-
-  while (it != sequence.end() && it->getNumber() == curNum + 1) {
-    ++curNum;
-    cout << it->getStringToPrint() << endl;
-    ++it;
-  }
-}
-
-static void outputDiff(vector<Line>& subsequence, vector<NewLine>& insertions,
-		  vector<DeletedLine>& deletions) {
-  
-    // Take the vector currently at the lowest index
-    // Print all the consecutive lines
-    // If there are ever ties for lowest index, the priority is subsequence 
-    // first, deletions second, and insertions third
-    vector<Line>::iterator subIt = subsequence.begin();
-    vector<NewLine>::iterator newIt = insertions.begin();
-    vector<DeletedLine>::iterator delIt = deletions.begin();
-
-    subIt = subsequence.begin();
-    newIt = insertions.begin();
-    delIt = deletions.begin();
-    
-    while (subIt != subsequence.end() || newIt != insertions.end()
-           || delIt != deletions.end()) {
-        VectorToSelectFrom v = selectFirst(subsequence, insertions, deletions,
-					   subIt, newIt, delIt);
-	switch (v) {
-	case SUBSEQUENCE:
-	  takeAllConsecutive<Line>(subsequence, subIt);
-	  break;
-	case DELETIONS:
-	  takeAllConsecutive<DeletedLine>(deletions, delIt);
-	  break;
-	case INSERTIONS:
-	  takeAllConsecutive<NewLine>(insertions, newIt);
-	  break;
-	}
-	// continue taking as much as possible
-    }
-}
-
-static void getInsertions(vector<Line>& subsequence, vector<Line>& newString,
-			  vector<NewLine>& insertedLines) {
-    vector<Line>::iterator newStringIt = newString.begin();
+static void getDeltas(vector<Line>& subsequence, vector<Line>& alternateString,
+			DiffBuilder& builder, ElementType type) {
+    vector<Line>::iterator altIt = alternateString.begin();
     vector<Line>::iterator subsequenceIt = subsequence.begin();
 
     // Everything contained in newString but not in subsequence is an inserted line
     while (subsequenceIt != subsequence.end()) {
-        if ((*subsequenceIt).equals(*newStringIt)) {
+        if ((*subsequenceIt).equals(*altIt)) {
             ++subsequenceIt;
-            ++newStringIt;
+            ++altIt;
         } else {
-            insertedLines.push_back(NewLine(*newStringIt));
-            ++newStringIt;
+            if (type == INSERTION) {
+                builder.registerInsertedLine(*altIt);
+            } else {
+                builder.registerDeletedLine(*altIt);
+            }
+            ++altIt;
         }
     }
 
-    while (newStringIt != newString.end()) {
-        insertedLines.push_back(NewLine(*newStringIt));
-        ++newStringIt;
-    }
-}
-
-static void getDeletions(vector<Line>& subsequence, vector<Line>& oldString,
-			 vector<DeletedLine>& deletedLines) {
-    vector<Line>::iterator oldStringIt = oldString.begin();
-    vector<Line>::iterator subsequenceIt = subsequence.begin();
-
-    while (subsequenceIt != subsequence.end()) {
-        if ((*subsequenceIt).equals(*oldStringIt)) {
-            ++subsequenceIt;
-            ++oldStringIt;
+    while (altIt != alternateString.end()) {
+        if (type == INSERTION) {
+            builder.registerInsertedLine(*altIt);
         } else {
-            deletedLines.push_back(DeletedLine(*oldStringIt));
-            ++oldStringIt;
+            builder.registerDeletedLine(*altIt);
         }
-    }
-
-    while (oldStringIt != oldString.end()) {
-        deletedLines.push_back(DeletedLine(*oldStringIt));
-        ++oldStringIt;
+        ++altIt;
     }
 }
 
-static void getSubsequence(int ** grid, vector<Line>& s,
+static Diff getSubsequence(int ** grid, vector<Line>& s,
 			   vector<Line>& t, vector<Line>& subsequence) {
     int sLen = s.size();
     int tLen = t.size();
@@ -172,16 +55,19 @@ static void getSubsequence(int ** grid, vector<Line>& s,
         }
     }
 
-    vector<NewLine> insertedLines;
-    vector<DeletedLine> deletedLines;
-    
-    getInsertions(subsequence, t, insertedLines);
-    getDeletions(subsequence, s, deletedLines);
+    DiffBuilder builder;
 
-    outputDiff(subsequence, insertedLines, deletedLines);
+    getDeltas(subsequence, t, builder, INSERTION);
+    getDeltas(subsequence, s, builder, DELETION);
+
+    Diff d = builder.build();
+
+    d.print();
+
+    return d;
 }
 
-static void subsequenceLength(vector<Line>& s, vector<Line>& t, vector<Line>& subsequence) {
+static Diff subsequenceLength(vector<Line>& s, vector<Line>& t, vector<Line>& subsequence) {
     int sLen = s.size();
     int tLen = t.size();
 
@@ -215,16 +101,18 @@ static void subsequenceLength(vector<Line>& s, vector<Line>& t, vector<Line>& su
         }
     }
 
-    getSubsequence(grid, s, t, subsequence);
+    Diff result = getSubsequence(grid, s, t, subsequence);
     
     for (int i = 0; i <= tLen; ++i) {
         delete[] grid[i];
     }
 
     delete[] grid;
+
+    return result;
 }
 
-void SubsequenceAnalyzer::calculateSubsequence(vector<Line>& s, vector<Line>& t,
-                                               vector<Line>& subsequence) {
-    subsequenceLength(s, t, subsequence);
+Diff SubsequenceAnalyzer::calculateDiff(vector<Line>& s, vector<Line>& t,
+					vector<Line>& subsequence) {
+    return subsequenceLength(s, t, subsequence);
 }

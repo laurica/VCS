@@ -1,8 +1,9 @@
-#include "FileParser.h"
-#include <vector>
-#include "SubsequenceAnalyzer.h"
 #include <iostream>
+#include <vector>
+
+#include "FileParser.h"
 #include "Line.h"
+#include "SubsequenceAnalyzer.h"
 
 int main() {
     std::vector<Line> v;
@@ -12,7 +13,7 @@ int main() {
     FileParser::readFile("testFile.txt", v);
     FileParser::readFile("testFile2.txt", w);
 
-    SubsequenceAnalyzer::calculateSubsequence(v, w, sub);
-
+    SubsequenceAnalyzer::calculateDiff(v, w, sub);
+    
     return 0;
 }

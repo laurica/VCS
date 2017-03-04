@@ -2,16 +2,15 @@
 #define SUBSEQUENCEANALYZER
 
 #include <vector>
+
+#include "Diff.h"
 #include "Line.h"
-#include "NewLine.h"
-#include "DeletedLine.h"
 
 class SubsequenceAnalyzer 
 {
 public:
-    static void calculateSubsequence(std::vector<Line>& s,
-				     std::vector<Line>& t,
-				     std::vector<Line>& subsequence);
+    static Diff calculateDiff(std::vector<Line>& s, std::vector<Line>& t,
+			      std::vector<Line>& subsequence);
 };
 
 #endif
