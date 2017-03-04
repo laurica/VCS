@@ -11,12 +11,12 @@ enum ElementType {
 };
 
 class DiffElement {
-  ElementType type;
+  const ElementType type;
   std::vector<std::string> lines;
   int startingLine;
  public:
-  DiffElement(ElementType type, std::vector<Line>& linesToAdd);
-  void print();
+  DiffElement(const ElementType type, const std::vector<Line>& linesToAdd);
+  void print() const;
 };
 
 #endif

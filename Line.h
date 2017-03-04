@@ -6,9 +6,8 @@
 
 class Line 
 {
-protected:
-    int number;
-    std::string line;
+    const int number;
+    const std::string line;
 
 public:
     Line(const int i, const std::string str);

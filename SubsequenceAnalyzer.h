@@ -9,8 +9,7 @@
 class SubsequenceAnalyzer 
 {
 public:
-    static Diff calculateDiff(std::vector<Line>& s, std::vector<Line>& t,
-			      std::vector<Line>& subsequence);
+    static Diff calculateDiff(const std::vector<Line>& s, const std::vector<Line>& t);
 };
 
 #endif

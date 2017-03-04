@@ -1,14 +1,15 @@
 #include "Diff.h"
+#include "DiffApplier.h"
 #include "DiffBuilder.h"
 #include "DiffElement.h"
 #include "SubsequenceAnalyzer.h"
 
 using namespace std;
 
-static void getDeltas(vector<Line>& subsequence, vector<Line>& alternateString,
-			DiffBuilder& builder, ElementType type) {
-    vector<Line>::iterator altIt = alternateString.begin();
-    vector<Line>::iterator subsequenceIt = subsequence.begin();
+static void getDeltas(const vector<Line>& subsequence, const vector<Line>& alternateString,
+		      DiffBuilder& builder, ElementType type) {
+    vector<Line>::const_iterator altIt = alternateString.begin();
+    vector<Line>::const_iterator subsequenceIt = subsequence.begin();
 
     // Everything contained in newString but not in subsequence is an inserted line
     while (subsequenceIt != subsequence.end()) {
@@ -35,8 +36,8 @@ static void getDeltas(vector<Line>& subsequence, vector<Line>& alternateString,
     }
 }
 
-static Diff getSubsequence(int ** grid, vector<Line>& s,
-			   vector<Line>& t, vector<Line>& subsequence) {
+static Diff getSubsequence(int ** grid, const vector<Line>& s,
+			   const vector<Line>& t, vector<Line>& subsequence) {
     int sLen = s.size();
     int tLen = t.size();
 
@@ -67,7 +68,8 @@ static Diff getSubsequence(int ** grid, vector<Line>& s,
     return d;
 }
 
-static Diff subsequenceLength(vector<Line>& s, vector<Line>& t, vector<Line>& subsequence) {
+static Diff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
+			      vector<Line>& subsequence) {
     int sLen = s.size();
     int tLen = t.size();
 
@@ -112,7 +114,10 @@ static Diff subsequenceLength(vector<Line>& s, vector<Line>& t, vector<Line>& su
     return result;
 }
 
-Diff SubsequenceAnalyzer::calculateDiff(vector<Line>& s, vector<Line>& t,
-					vector<Line>& subsequence) {
-    return subsequenceLength(s, t, subsequence);
+Diff SubsequenceAnalyzer::calculateDiff(const vector<Line>& s, const vector<Line>& t) {
+  vector<Line> subsequence;
+    Diff d = subsequenceLength(s, t, subsequence);
+    vector<Line> newFile;
+    DiffApplier::applyDiff(s, d, newFile);
+    return d;
 }

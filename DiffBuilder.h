@@ -16,8 +16,8 @@ class DiffBuilder {
   std::vector<DiffElement> deletions;
 
  public:
-  void registerDeletedLine(Line l);
-  void registerInsertedLine(Line l);
+  void registerDeletedLine(const Line l);
+  void registerInsertedLine(const Line l);
   Diff build();
 };
 

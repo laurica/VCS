@@ -2,8 +2,8 @@
 
 using namespace std;
 
-static void registerNewLine(vector<Line>& lines, Line& newLine, int& lastNum,
-			    vector<DiffElement>& elements, ElementType type) {
+static void registerNewLine(vector<Line>& lines, const Line& newLine, int& lastNum,
+			    vector<DiffElement>& elements, const ElementType type) {
   if (lines.size() != 0 && newLine.getNumber() != lastNum + 1) {
     // create a new diff element
     elements.push_back(DiffElement(type, lines));
@@ -15,11 +15,11 @@ static void registerNewLine(vector<Line>& lines, Line& newLine, int& lastNum,
   lines.push_back(newLine);
 }
 
-void DiffBuilder::registerDeletedLine(Line l) {
+void DiffBuilder::registerDeletedLine(const Line l) {
   registerNewLine(deletedLines, l, numberOfLastDeletedLine, deletions, DELETION);
 }
 
-void DiffBuilder::registerInsertedLine(Line l) {
+void DiffBuilder::registerInsertedLine(const Line l) {
   registerNewLine(insertedLines, l, numberOfLastInsertedLine, insertions, INSERTION);
 }
 

@@ -6,11 +6,11 @@
 #include "DiffElement.h"
 
 class Diff {
-  std::vector<DiffElement> insertions;
-  std::vector<DiffElement> deletions;
+  const std::vector<DiffElement> insertions;
+  const std::vector<DiffElement> deletions;
  public:
-  Diff(std::vector<DiffElement> insertions, std::vector<DiffElement> deletions);
-  void print();
+  Diff(const std::vector<DiffElement> insertions, const std::vector<DiffElement> deletions);
+  void print() const;
 };
 
 #endif

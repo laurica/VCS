@@ -4,19 +4,20 @@
 
 using namespace std;
 
-DiffElement::DiffElement(ElementType type, vector<Line>& linesToAdd) : type(type) {
+DiffElement::DiffElement(const ElementType type, const vector<Line>& linesToAdd) :
+  type(type) {
   assert(linesToAdd.size() != 0);
 
   startingLine = linesToAdd[0].getNumber();
   
-  for (vector<Line>::iterator it = linesToAdd.begin(); it != linesToAdd.end(); ++it) {
+  for (vector<Line>::const_iterator it = linesToAdd.begin(); it != linesToAdd.end(); ++it) {
     lines.push_back(it->getString());
   }
 }
 
-void DiffElement::print() {
+void DiffElement::print() const {
   cout << (type == INSERTION ? "INSERTED:" : "DELETED") << endl;
-  for (vector<string>::iterator it = lines.begin(); it != lines.end(); ++it) {
+  for (vector<string>::const_iterator it = lines.begin(); it != lines.end(); ++it) {
     cout << *it << endl;
   }
 }

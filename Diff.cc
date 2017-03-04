@@ -4,19 +4,20 @@
 
 using namespace std;
 
-Diff::Diff(vector<DiffElement> insertions, vector<DiffElement> deletions) :
+Diff::Diff(const vector<DiffElement> insertions, const vector<DiffElement> deletions) :
   insertions(insertions), deletions(deletions) {}
 
-void Diff::print() {
+void Diff::print() const {
   cout << "Insertions size: " << insertions.size() << endl;
-  for (vector<DiffElement>::iterator it = insertions.begin(); it != insertions.end();
+  for (vector<DiffElement>::const_iterator it = insertions.begin(); it != insertions.end();
        ++it) {
     it->print();
     cout << endl;
   }
 
   cout << "Deletions size: " << deletions.size() << endl;
-  for (vector<DiffElement>::iterator it = deletions.begin(); it != deletions.end(); ++it) {
+  for (vector<DiffElement>::const_iterator it = deletions.begin(); it != deletions.end();
+       ++it) {
     it->print();
     cout << endl;
   }
