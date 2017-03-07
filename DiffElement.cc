@@ -21,3 +21,15 @@ void DiffElement::print() const {
     cout << *it << endl;
   }
 }
+
+int DiffElement::getNumLines() const {
+  return lines.size();
+}
+
+int DiffElement::getStartingLine() const {
+  return startingLine;
+}
+
+const vector<string>& DiffElement::getLines() const {
+  return lines;
+}

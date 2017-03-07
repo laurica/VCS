@@ -17,6 +17,9 @@ class DiffElement {
  public:
   DiffElement(const ElementType type, const std::vector<Line>& linesToAdd);
   void print() const;
+  int getNumLines() const;
+  int getStartingLine() const;
+  const std::vector<std::string>& getLines() const;
 };
 
 #endif

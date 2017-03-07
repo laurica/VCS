@@ -22,3 +22,11 @@ void Diff::print() const {
     cout << endl;
   }
 }
+
+const std::vector<DiffElement>& Diff::getDeletions() const {
+  return deletions;
+}
+
+const std::vector<DiffElement>& Diff::getInsertions() const {
+  return insertions;
+}

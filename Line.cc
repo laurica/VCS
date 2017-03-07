@@ -16,7 +16,3 @@ int Line::getNumber() const {
 string Line::getString() const {
     return line;
 }
-
-string Line::getStringToPrint() const {
-  return line;
-}
