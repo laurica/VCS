@@ -4,6 +4,7 @@
 #include "Diff.h"
 #include "DiffApplier.h"
 #include "FileParser.h"
+#include "FileWriter.h"
 #include "Line.h"
 #include "SubsequenceAnalyzer.h"
 
@@ -18,11 +19,7 @@ int main() {
     std::vector<Line> newFile;
     DiffApplier::applyDiff(v, d, newFile);
 
-
-    std::cout << "OUTPUTTING NEW FILE:" << std::endl;
-    for (std::vector<Line>::iterator it = newFile.begin(); it != newFile.end(); ++it) {
-      std::cout << it->getString() << std::endl;
-      }
+    FileWriter::writeFile(newFile, "testing01.txt");
     
     return 0;
 }
