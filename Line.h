@@ -6,14 +6,15 @@
 
 class Line 
 {
-    int number;
+    unsigned int number;
     std::string line;
 
 public:
-    Line(const int i, const std::string str);
+    Line(const unsigned int i, const std::string str);
     bool equals(const Line& other) const;
     int getNumber() const;
     std::string getString() const;
+    void setLineNumber(unsigned int newNumber);
 };
 
 #endif

@@ -67,3 +67,33 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
     ++rit;
   } // end for loop
 }
+
+static void reindex(vector<Line>& file) {
+  unsigned int curElem = 0;
+
+  for (vector<Line>::iterator it = file.begin(); it != file.end(); ++it) {
+    it->setLineNumber(curElem);
+    ++curElem;
+  }
+}
+
+void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile, const Diff& diff1, const Diff& diff2) {
+  vector<Line> newFile;
+  DiffApplier::applyDiff(baseFile, diff1, newFile);
+  reindex(newFile);
+  baseFile = newFile;
+  newFile.clear();
+  DiffApplier::applyDiff(baseFile, diff2, newFile);
+  baseFile = newFile;
+}
+
+void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile, std::queue<Diff>& diffsToApply) {
+  while (!diffsToApply.empty()) {
+    vector<Line> newFile;
+    Diff d = diffsToApply.front();
+    diffsToApply.pop();
+    DiffApplier::applyDiff(baseFile, d, newFile);
+    reindex(newFile);
+    baseFile = newFile;
+  }
+}
