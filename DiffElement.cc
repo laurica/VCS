@@ -16,7 +16,7 @@ DiffElement::DiffElement(const ElementType type, const vector<Line>& linesToAdd)
 }
 
 void DiffElement::print() const {
-  cout << (type == INSERTION ? "INSERTED:" : "DELETED") << endl;
+  cout << (type == INSERTION ? "INSERTED:" : "DELETED") << " (line " << startingLine << ")" << endl;
   for (vector<string>::const_iterator it = lines.begin(); it != lines.end(); ++it) {
     cout << *it << endl;
   }

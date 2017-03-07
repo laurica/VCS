@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "Diff.h"
+#include "DiffApplier.h"
 #include "FileParser.h"
 #include "Line.h"
 #include "SubsequenceAnalyzer.h"
@@ -13,6 +14,15 @@ int main() {
     FileParser::readFile("testFile.txt", v);
     FileParser::readFile("testFile2.txt", w);
 
-    SubsequenceAnalyzer::calculateDiff(v, w);    
+    Diff d = SubsequenceAnalyzer::calculateDiff(v, w);
+    std::vector<Line> newFile;
+    DiffApplier::applyDiff(v, d, newFile);
+
+
+    std::cout << "OUTPUTTING NEW FILE:" << std::endl;
+    for (std::vector<Line>::iterator it = newFile.begin(); it != newFile.end(); ++it) {
+      std::cout << it->getString() << std::endl;
+      }
+    
     return 0;
 }

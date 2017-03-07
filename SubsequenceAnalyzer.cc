@@ -115,9 +115,7 @@ static Diff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
 }
 
 Diff SubsequenceAnalyzer::calculateDiff(const vector<Line>& s, const vector<Line>& t) {
-  vector<Line> subsequence;
+    vector<Line> subsequence;
     Diff d = subsequenceLength(s, t, subsequence);
-    vector<Line> newFile;
-    DiffApplier::applyDiff(s, d, newFile);
     return d;
 }

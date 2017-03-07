@@ -4,13 +4,13 @@ using namespace std;
 
 void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
 			    vector<Line>& newFile) {
-  // copy everything from originalFile to newFile
+  /******************** copy everything from originalFile to newFile ********************/
   for (vector<Line>::const_iterator it = originalFile.begin(); it != originalFile.end();
        ++it) {
     newFile.push_back(*it);
   }
   
-  // delete everything with the given index
+  /******************** delete everything with the given index ********************/
   const vector<DiffElement>& deletions = diff.getDeletions();
 
   for (vector<DiffElement>::const_reverse_iterator rit = deletions.rbegin();
@@ -24,28 +24,32 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
     }
   }
 
-  // Figure out the indices! (They're different after the deletions!)
-  vector<int> indexesToInsertAt;
+  // At this point newFile contains the longest common subsequence!
+
+  /******************** Figure out the indices in the newFile vector we need to insert the new ********************/
+  /******************** lines at                                                               ********************/
+  vector<int> indicesToInsertAt;
   const vector<DiffElement>& insertions = diff.getInsertions();
   int currentIndex = 0;
   
   for (vector<DiffElement>::const_iterator it = insertions.begin(); it != insertions.end();
        ++it) {
-    while (originalFile[currentIndex].getNumber() <= it->getStartingLine()) {
+    while (newFile[currentIndex].getNumber() < it->getStartingLine()) {
       ++currentIndex;
     }
 
-    indexesToInsertAt.push_back(currentIndex);
+    indicesToInsertAt.push_back(currentIndex);
+    ++currentIndex;
   }
-
+  
   int originalSize = originalFile.size();
 
   vector<DiffElement>::const_reverse_iterator rit = insertions.rbegin();
   
-  for (vector<int>::reverse_iterator it = indexesToInsertAt.rbegin();
-       it != indexesToInsertAt.rend(); ++it) {
-      DiffElement currDiffElement = *rit;
-      const vector<string>& newLines = currDiffElement.getLines();
+  for (vector<int>::reverse_iterator it = indicesToInsertAt.rbegin();
+       it != indicesToInsertAt.rend(); ++it) {
+    DiffElement currDiffElement = *rit;
+    const vector<string>& newLines = currDiffElement.getLines();
     
     if (*it >= originalSize) {
       // push backs
@@ -53,12 +57,13 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
 	   lineIt != newLines.end(); ++lineIt) {
 	newFile.push_back(Line(0, *lineIt));
       }
-      ++rit;
     } else {
       for (vector<string>::const_reverse_iterator lineIt = newLines.rbegin();
 	   lineIt != newLines.rend(); ++lineIt) {
-	newFile.insert(newFile.begin() + *it, Line(0, *lineIt));
+	newFile.insert(newFile.begin() + (*it + 1), Line(0, *lineIt));
       }
     }
+
+    ++rit;
   } // end for loop
 }
