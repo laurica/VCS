@@ -24,11 +24,6 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
     }
   }
 
-  cout << "Printing longest common subsequence:" << endl;
-  for (vector<Line>::iterator it = newFile.begin(); it != newFile.end(); ++it) {
-    cout << it->getString() << endl;
-  }
-
   // At this point newFile contains the longest common subsequence!
 
   /******************** Figure out the indices in the newFile vector we need to insert the new ********************/
@@ -43,7 +38,6 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
       ++currentIndex;
     }
 
-    cout << "Should insert at " << currentIndex << endl;
     indicesToInsertAt.push_back(currentIndex );
     ++currentIndex;
   }

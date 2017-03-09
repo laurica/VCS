@@ -63,8 +63,6 @@ static Diff getSubsequence(int ** grid, const vector<Line>& s,
 
     Diff d = builder.build();
 
-    d.print();
-
     return d;
 }
 
