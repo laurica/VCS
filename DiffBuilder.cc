@@ -4,7 +4,7 @@ using namespace std;
 
 static void registerNewLine(vector<Line>& lines, const Line& newLine, int& lastNum,
 			    vector<DiffElement>& elements, const ElementType type) {
-  if (lines.size() != 0 && newLine.getNumber() != lastNum + 1) {
+  if (lines.size() != 0 && newLine.getNumber() != lastNum) {
     // create a new diff element
     elements.push_back(DiffElement(type, lines));
     // emtpy the deletedLines container
@@ -15,12 +15,12 @@ static void registerNewLine(vector<Line>& lines, const Line& newLine, int& lastN
   lines.push_back(newLine);
 }
 
-void DiffBuilder::registerDeletedLine(const Line l) {
-  registerNewLine(deletedLines, l, numberOfLastDeletedLine, deletions, DELETION);
+void DiffBuilder::registerDeletedLine(const unsigned int index, const std::string& text) {
+  registerNewLine(deletedLines, Line(index, text), numberOfLastDeletedLine, deletions, DELETION);
 }
 
-void DiffBuilder::registerInsertedLine(const Line l) {
-  registerNewLine(insertedLines, l, numberOfLastInsertedLine, insertions, INSERTION);
+void DiffBuilder::registerInsertedLine(const unsigned int index, const std::string& text) {
+  registerNewLine(insertedLines, Line(index, text), numberOfLastInsertedLine, insertions, INSERTION);
 }
 
 static void addFinalElementAndClear(vector<Line>& lines, vector<DiffElement>& elements,

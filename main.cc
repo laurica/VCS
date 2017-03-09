@@ -12,8 +12,8 @@ int main() {
     std::vector<Line> v;
     std::vector<Line> w;
 
-    FileParser::readFile("testFile.txt", v);
-    FileParser::readFile("testFile2.txt", w);
+    FileParser::readFile("examples/diff1.cpp", v);
+    FileParser::readFile("examples/diff2.cpp", w);
 
     Diff d = SubsequenceAnalyzer::calculateDiff(v, w);
     std::vector<Line> newFile;

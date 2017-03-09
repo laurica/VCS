@@ -24,6 +24,11 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
     }
   }
 
+  cout << "Printing longest common subsequence:" << endl;
+  for (vector<Line>::iterator it = newFile.begin(); it != newFile.end(); ++it) {
+    cout << it->getString() << endl;
+  }
+
   // At this point newFile contains the longest common subsequence!
 
   /******************** Figure out the indices in the newFile vector we need to insert the new ********************/
@@ -38,7 +43,8 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
       ++currentIndex;
     }
 
-    indicesToInsertAt.push_back(currentIndex);
+    cout << "Should insert at " << currentIndex << endl;
+    indicesToInsertAt.push_back(currentIndex );
     ++currentIndex;
   }
   
@@ -60,7 +66,7 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
     } else {
       for (vector<string>::const_reverse_iterator lineIt = newLines.rbegin();
 	   lineIt != newLines.rend(); ++lineIt) {
-	newFile.insert(newFile.begin() + (*it + 1), Line(0, *lineIt));
+	newFile.insert(newFile.begin() + *it, Line(0, *lineIt));
       }
     }
 
@@ -97,3 +103,29 @@ void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile, std::queue<Diff>& 
     baseFile = newFile;
   }
 }
+
+/*void DiffApplier::mergeDiffs(const Diff& diff1, const Diff& diff2) {
+  // get the insertions from diff1
+  // get the deletions from diff2
+  // take the first from (insertions, deletions) (based on line)
+  // get everything in diff2 intersecting with those line numbers
+  // merge the two together
+  const std::vector<DiffElement>& insertions = diff1.getInsertions();
+  const std::vector<DiffElement>& deletions = diff1.getDeletions();
+
+  vector<DiffElement>::const_iterator insertionsIt = insertions.begin();
+  vector<DiffElement>::const_iterator deletionsIt = deletions.begin();
+  
+  while (insertionsIt != insertions.end() && deletionsIt != deletions.end()) {
+    // take the first diff element from insertions/deletions
+    DiffElement curElement;
+    if (insertionsIt == insertions.end()) {
+      curElement = *deletionsIt;
+      ++deletionsIt;
+    } else if (deletionsIt == deletions.end()) {
+      curElement = *insertionsIt;
+      ++insertionsIt;
+    } else if () {
+    }
+  }
+}*/

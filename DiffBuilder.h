@@ -1,6 +1,7 @@
 #ifndef DIFFBUILDER
 #define DIFFBUILDER
 
+#include <string>
 #include <vector>
 
 #include "Diff.h"
@@ -16,8 +17,8 @@ class DiffBuilder {
   std::vector<DiffElement> deletions;
 
  public:
-  void registerDeletedLine(const Line l);
-  void registerInsertedLine(const Line l);
+  void registerDeletedLine(const unsigned int index, const std::string& text);
+  void registerInsertedLine(const unsigned int index, const std::string& text);
   Diff build();
 };
 

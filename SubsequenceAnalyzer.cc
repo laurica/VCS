@@ -18,9 +18,9 @@ static void getDeltas(const vector<Line>& subsequence, const vector<Line>& alter
             ++altIt;
         } else {
             if (type == INSERTION) {
-                builder.registerInsertedLine(*altIt);
+	      builder.registerInsertedLine(subsequenceIt->getNumber(), altIt->getString());
             } else {
-                builder.registerDeletedLine(*altIt);
+	      builder.registerDeletedLine(altIt->getNumber(), altIt->getString());
             }
             ++altIt;
         }
@@ -28,9 +28,9 @@ static void getDeltas(const vector<Line>& subsequence, const vector<Line>& alter
 
     while (altIt != alternateString.end()) {
         if (type == INSERTION) {
-            builder.registerInsertedLine(*altIt);
+	  builder.registerInsertedLine(subsequenceIt->getNumber(), altIt->getString());
         } else {
-            builder.registerDeletedLine(*altIt);
+	  builder.registerDeletedLine(altIt->getNumber(), altIt->getString());
         }
         ++altIt;
     }
