@@ -17,13 +17,13 @@ int main() {
   FileParser::readFile("testFile2.txt", v);
   FileParser::readFile("examples/diff2.cpp", w);
 
-  Diff d1 = SubsequenceAnalyzer::calculateDiff(u, v);
+  //Diff d1 = SubsequenceAnalyzer::calculateDiff(u, v);
   Diff d2 = SubsequenceAnalyzer::calculateDiff(v, w);
 
-  d1.print();
+  //d1.print();
   
   std::vector<Line> newFile;
-  DiffApplier::applyDiff(u, d1, newFile);
+  DiffApplier::applyDiff(v, d2, newFile);
   FileWriter::writeFile(newFile, "testing01.txt");
   
   //DiffApplier::mergeDiffs(d1, d2);

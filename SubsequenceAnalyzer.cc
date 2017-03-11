@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "Diff.h"
 #include "DiffApplier.h"
 #include "DiffBuilder.h"
@@ -13,26 +15,33 @@ static void getDeltas(const vector<Line>& subsequence, const vector<Line>& alter
 
     // Everything contained in newString but not in subsequence is an inserted line
     while (subsequenceIt != subsequence.end()) {
-        if ((*subsequenceIt).equals(*altIt)) {
-            ++subsequenceIt;
-            ++altIt;
-        } else {
-            if (type == INSERTION) {
-	      builder.registerInsertedLine(subsequenceIt->getNumber(), altIt->getString());
-            } else {
-	      builder.registerDeletedLine(altIt->getNumber(), altIt->getString());
-            }
-            ++altIt;
-        }
+      if ((*subsequenceIt).equals(*altIt)) {
+          ++subsequenceIt;
+          ++altIt;
+      } else {
+          if (type == INSERTION) {
+	    builder.registerInsertedLine(subsequenceIt->getNumber(), altIt->getString());
+          } else {
+            builder.registerDeletedLine(altIt->getNumber(), altIt->getString());
+          }
+          ++altIt;
+      }
     }
-
+    
     while (altIt != alternateString.end()) {
-        if (type == INSERTION) {
-	  builder.registerInsertedLine(subsequenceIt->getNumber(), altIt->getString());
-        } else {
-	  builder.registerDeletedLine(altIt->getNumber(), altIt->getString());
-        }
-        ++altIt;
+      if (type == INSERTION) {
+	unsigned int index = 0;
+	if (subsequence.size() != 0) {
+	  if (subsequenceIt == subsequence.end()) {
+	    --subsequenceIt;
+	  }
+	  index = subsequenceIt->getNumber();
+	}
+	builder.registerInsertedLine(index, altIt->getString());
+      } else {
+        builder.registerDeletedLine(altIt->getNumber(), altIt->getString());
+      }
+      ++altIt;
     }
 }
 
@@ -57,12 +66,11 @@ static Diff getSubsequence(int ** grid, const vector<Line>& s,
     }
 
     DiffBuilder builder;
-
+    
     getDeltas(subsequence, t, builder, INSERTION);
     getDeltas(subsequence, s, builder, DELETION);
 
-    Diff d = builder.build();
-
+    Diff d = builder.build();    
     return d;
 }
 
@@ -100,7 +108,7 @@ static Diff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
             }
         }
     }
-
+    
     Diff result = getSubsequence(grid, s, t, subsequence);
     
     for (int i = 0; i <= tLen; ++i) {
