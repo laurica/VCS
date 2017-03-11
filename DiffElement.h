@@ -11,15 +11,19 @@ enum ElementType {
 };
 
 class DiffElement {
-  const ElementType type;
+  ElementType type;
   std::vector<std::string> lines;
-  int startingLine;
+  // starting line is the line in the previous file this change occurs on
+  unsigned int baseStartingLine;
+  unsigned int newStartingLine;
+  
  public:
-  DiffElement(const ElementType type, const std::vector<Line>& linesToAdd);
   void print() const;
-  int getNumLines() const;
-  int getStartingLine() const;
+  unsigned int getNumLines() const;
+  unsigned int getBaseStartingLine() const;
+  void setNewStartingLine(unsigned int newStartingLine);
   const std::vector<std::string>& getLines() const;
+  DiffElement(const ElementType type, const std::vector<Line>& linesToAdd);
 };
 
 #endif

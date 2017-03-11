@@ -9,7 +9,7 @@ bool Line::equals(const Line& other) const {
     return line == other.line;
 }
 
-int Line::getNumber() const {
+unsigned int Line::getNumber() const {
     return number;
 }
 

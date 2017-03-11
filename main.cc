@@ -9,17 +9,24 @@
 #include "SubsequenceAnalyzer.h"
 
 int main() {
-    std::vector<Line> v;
-    std::vector<Line> w;
+  std::vector<Line> u;
+  std::vector<Line> v;
+  std::vector<Line> w;
 
-    FileParser::readFile("examples/diff1.cpp", v);
-    FileParser::readFile("examples/diff2.cpp", w);
+  FileParser::readFile("testFile.txt", u);
+  FileParser::readFile("testFile2.txt", v);
+  FileParser::readFile("examples/diff2.cpp", w);
 
-    Diff d = SubsequenceAnalyzer::calculateDiff(v, w);
-    std::vector<Line> newFile;
-    DiffApplier::applyDiff(v, d, newFile);
+  Diff d1 = SubsequenceAnalyzer::calculateDiff(u, v);
+  Diff d2 = SubsequenceAnalyzer::calculateDiff(v, w);
 
-    FileWriter::writeFile(newFile, "testing01.txt");
-    
-    return 0;
+  d1.print();
+  
+  std::vector<Line> newFile;
+  DiffApplier::applyDiff(u, d1, newFile);
+  FileWriter::writeFile(newFile, "testing01.txt");
+  
+  //DiffApplier::mergeDiffs(d1, d2);
+      
+  return 0;
 }

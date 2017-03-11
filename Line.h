@@ -12,7 +12,7 @@ class Line
 public:
     Line(const unsigned int i, const std::string str);
     bool equals(const Line& other) const;
-    int getNumber() const;
+    unsigned int getNumber() const;
     std::string getString() const;
     void setLineNumber(unsigned int newNumber);
 };

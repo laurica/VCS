@@ -16,7 +16,7 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
   for (vector<DiffElement>::const_reverse_iterator rit = deletions.rbegin();
        rit != deletions.rend(); ++rit) {
     // for each element, remove from original file at the index specified
-    int idx = rit->getStartingLine();
+    int idx = rit->getBaseStartingLine();
     int numLines = rit->getNumLines();
 
     for (int i = 0; i < numLines; ++i) {
@@ -34,7 +34,7 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
   
   for (vector<DiffElement>::const_iterator it = insertions.begin(); it != insertions.end();
        ++it) {
-    while (newFile[currentIndex].getNumber() < it->getStartingLine()) {
+    while (newFile[currentIndex].getNumber() < it->getBaseStartingLine()) {
       ++currentIndex;
     }
 
@@ -98,28 +98,113 @@ void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile, std::queue<Diff>& 
   }
 }
 
-/*void DiffApplier::mergeDiffs(const Diff& diff1, const Diff& diff2) {
-  // get the insertions from diff1
-  // get the deletions from diff2
-  // take the first from (insertions, deletions) (based on line)
-  // get everything in diff2 intersecting with those line numbers
-  // merge the two together
-  const std::vector<DiffElement>& insertions = diff1.getInsertions();
-  const std::vector<DiffElement>& deletions = diff1.getDeletions();
-
-  vector<DiffElement>::const_iterator insertionsIt = insertions.begin();
-  vector<DiffElement>::const_iterator deletionsIt = deletions.begin();
+/*static void getOneSetOfIntersectingDiffElements(unsigned int startingIndex, unsigned int endingIndex,
+						vector<DiffElement>& otherElements) {
+  // Store the indices we want to delete at
+  vector<int> indicesToDeleteAt;
+  int ctr = 0;
   
-  while (insertionsIt != insertions.end() && deletionsIt != deletions.end()) {
-    // take the first diff element from insertions/deletions
-    DiffElement curElement;
-    if (insertionsIt == insertions.end()) {
-      curElement = *deletionsIt;
-      ++deletionsIt;
-    } else if (deletionsIt == deletions.end()) {
-      curElement = *insertionsIt;
-      ++insertionsIt;
-    } else if () {
+  for (vector<DiffElement>::iterator it = otherElements.begin(); it != otherElements.end(); ++it) {
+    unsigned int startOfCurElement = it->getStartingLine();
+    unsigned int endOfCurElement = startOfCurElement + it->getNumLines() - 1;
+    if (startOfCurElement <= endingIndex && endOfCurElement >= startingIndex) {
+      indicesToDeleteAt.push_back(ctr);
     }
+    
+    ++ctr;
   }
+
+  for (vector<int>::reverse_iterator it = indicesToDeleteAt.rbegin(); it != indicesToDeleteAt.rend(); ++it) {
+    otherElements.erase(otherElements.begin() + *it);
+  }
+}
+
+static void getIntersectingDiffElements(const DiffElement& e, vector<DiffElement>& intersectingInsertions,
+					vector<DiffElement>& intersectingDeletions) {
+  // get everything in the range [startingLine - 1] to [endingLine + 1]
+  // the -1/+1 is to account for the fact that we want to condense ranges that border each other
+  // eg. [2,5] and [6,10] should be condensed to [2,10]
+  unsigned int startingIndex = (e.getStartingLine() == 0) ? 0 : e.getStartingLine() - 1;
+  // Note that the endingLine is on index startingIndex + getNumLines() - 1, so our -1/+1 cancel
+  unsigned int endingIndex = startingIndex + e.getNumLines();
+
+  getOneSetOfIntersectingDiffElements(startingIndex, endingIndex, intersectingInsertions);
+  getOneSetOfIntersectingDiffElements(startingIndex, endingIndex, intersectingDeletions);
 }*/
+
+/*void DiffApplier::mergeDiffs(const Diff& diff1, const Diff& diff2) {
+  //diff1.print();
+  //diff2.print();
+
+  vector<DiffElement> insertions1 = diff1.getInsertions();
+  vector<DiffElement> deletions1 = diff1.getDeletions();
+
+  const vector<DiffElement>& insertions2 = diff2.getInsertions();
+  const vector<DiffElement>& deletions2 = diff2.getDeletions();
+
+  if (deletions2.size() == 0) {
+  }
+
+  vector<DiffElement>::const_iterator it = insertions1.begin();
+  
+  // for every element in insertions2, find everything it intersects with
+  for (vector<DiffElement>::const_iterator it2 = insertions2.begin(); it2 != insertions2.end(); ++it2) {
+    // check if the insertions co-incide with deletions
+    //vector<DiffElement> intersectingInsertions = insertions1;
+    //vector<DiffElement> intersectingDeletions = deletions1;
+    // get the intersecting insertions, if any
+    while (it->getStartingLine() < it2->getStartingLine()) {
+      ++it;
+    }
+
+
+    //getIntersectingDiffElements(*it, intersectingInsertions, intersectingDeletions);
+    // if they don't, it's easy, either merge them into an existing insertion, or create a new insertion
+    // if it does co-incide with a deletion, 
+  }
+  }*/
+
+/*void DiffApplier::mergeDiffs(const Diff& diff1, const Diff& diff2) {
+  //diff1.print();
+  //diff2.print();
+
+  vector<DiffElement> insertions1 = diff1.getInsertions();
+  vector<DiffElement> deletions1 = diff1.getDeletions();
+
+  const vector<DiffElement>& insertions2 = diff2.getInsertions();
+  const vector<DiffElement>& deletions2 = diff2.getDeletions();
+
+  if (deletions2.size() == 0) {
+  }
+
+  vector<DiffElement>::const_iterator it = insertions1.begin();
+
+  // TODO:
+  // Check if some of the deletions of it match up with the insertions of it2
+  // If they cancel, get rid of them
+  //
+  
+  // for every element in insertions2, find everything it intersects with
+  for (vector<DiffElement>::const_iterator it2 = insertions2.begin(); it2 != insertions2.end(); ++it2) {
+    // We want to find the member of insertions1 whose first element comes just before *it2
+    while (it->getStartingLine() <= it2->getStartingLine()) {
+      ++it;
+    }
+    
+    if (it == insertions1.begin()) {
+      // this element comes before any element of 'it'
+      // we can insert this element at the start of insertions1
+      insertions1.push_back(*it2);
+    } else {
+      --it;
+      // Now 'it' is pointing to the last element coming before it2
+      // Check if it2->getStartingLine falls in it[start, end]
+      if (it2->getStartingLine >= it->getStartingLine && it2->getStartingLine >= ) {
+      } else {
+      }
+    }
+
+    // if they don't, it's easy, either merge them into an existing insertion, or create a new insertion
+    // if it does co-incide with a deletion, 
+  }
+  }*/

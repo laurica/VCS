@@ -9,9 +9,9 @@
 #include "Line.h"
 
 class DiffBuilder {
-  int numberOfLastInsertedLine;
+  unsigned int numberOfLastInsertedLine;
   std::vector<Line> insertedLines;
-  int numberOfLastDeletedLine;
+  unsigned int numberOfLastDeletedLine;
   std::vector<Line> deletedLines;
   std::vector<DiffElement> insertions;
   std::vector<DiffElement> deletions;

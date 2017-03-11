@@ -2,9 +2,9 @@
 
 using namespace std;
 
-static void registerNewLine(vector<Line>& lines, const Line& newLine, int& lastNum,
+static void registerNewLine(vector<Line>& lines, const Line& newLine, unsigned int& lastNum,
 			    vector<DiffElement>& elements, const ElementType type) {
-  if (lines.size() != 0 && newLine.getNumber() != lastNum) {
+  if (lines.size() != 0 && newLine.getNumber() != (type == INSERTION ? lastNum : lastNum + 1)) {
     // create a new diff element
     elements.push_back(DiffElement(type, lines));
     // emtpy the deletedLines container
