@@ -39,3 +39,7 @@ const vector<string>& DiffElement::getLines() const {
 void DiffElement::setNewStartingLine(unsigned int newStartingLine) {
   this->newStartingLine = newStartingLine;
 }
+
+unsigned int DiffElement::getNewStartingLine() const {
+  return newStartingLine;
+}

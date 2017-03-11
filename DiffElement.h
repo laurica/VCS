@@ -22,6 +22,7 @@ class DiffElement {
   unsigned int getNumLines() const;
   unsigned int getBaseStartingLine() const;
   void setNewStartingLine(unsigned int newStartingLine);
+  unsigned int getNewStartingLine() const;
   const std::vector<std::string>& getLines() const;
   DiffElement(const ElementType type, const std::vector<Line>& linesToAdd);
 };

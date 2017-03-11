@@ -36,6 +36,33 @@ Diff DiffBuilder::build() {
   // element.
   addFinalElementAndClear(deletedLines, deletions, DELETION);
   addFinalElementAndClear(insertedLines, insertions, INSERTION);
+
+  // now we need to properly set the 'new line number' field of the diff elements
+  // this only applies to insertions (deleted lines don't have anything corresponding in the new file)
+  vector<DiffElement>::iterator it = insertions.begin();
+  vector<DiffElement>::iterator delIt = deletions.begin();
+  int curDelta = 0;
+  
+  while (it != insertions.end()) {
+    unsigned int tempDelta = 0;
+    // take as many deletions as we can
+    while (delIt != deletions.end() && delIt->getBaseStartingLine() < it->getBaseStartingLine()) {
+      tempDelta += delIt->getNumLines();
+      ++delIt;
+    }
+
+    curDelta -= tempDelta;
+    it->setNewStartingLine(it->getBaseStartingLine() + curDelta);
+
+    if (delIt != deletions.end() && delIt->getBaseStartingLine() == it->getBaseStartingLine()) {
+      curDelta -= delIt->getNumLines();
+      ++delIt;
+    }
+
+    curDelta += it->getNumLines();
+    
+    ++it;
+  }
   
   Diff d(insertions, deletions);
   
