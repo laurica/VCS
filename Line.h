@@ -14,7 +14,7 @@ public:
     bool equals(const Line& other) const;
     unsigned int getNumber() const;
     std::string getString() const;
-    void setLineNumber(unsigned int newNumber);
+    void setLineNumber(const unsigned int newNumber);
 };
 
 #endif
