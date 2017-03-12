@@ -18,13 +18,23 @@ class DiffElement {
   unsigned int newStartingLine;
   
  public:
-  void print() const;
+  // constructor
+  DiffElement(const ElementType type, std::vector<Line>& linesToAdd);
+  DiffElement(const ElementType type, std::vector<std::string> text);
+  
+  // getters
   unsigned int getNumLines() const;
   unsigned int getBaseStartingLine() const;
-  void setNewStartingLine(unsigned int newStartingLine);
   unsigned int getNewStartingLine() const;
-  const std::vector<std::string>& getLines() const;
-  DiffElement(const ElementType type, const std::vector<Line>& linesToAdd);
+  std::vector<std::string> getLines() const;
+  
+  // setters
+  void setNewStartingLine(unsigned int newStartingLine);
+
+  // functionality
+  void print() const;
+  void mergeInAdditionalChanges(unsigned int startingIndex,
+				std::vector<std::string> additionalLines);
 };
 
 #endif

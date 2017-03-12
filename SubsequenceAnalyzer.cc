@@ -8,19 +8,22 @@
 
 using namespace std;
 
-static void getDeltas(const vector<Line>& subsequence, const vector<Line>& alternateString,
+static void getDeltas(const vector<Line>& subsequence,
+		      const vector<Line>& alternateString,
 		      DiffBuilder& builder, ElementType type) {
     vector<Line>::const_iterator altIt = alternateString.begin();
     vector<Line>::const_iterator subsequenceIt = subsequence.begin();
 
-    // Everything contained in newString but not in subsequence is an inserted line
+    // Everything contained in newString but not in subsequence is an inserted
+    // line
     while (subsequenceIt != subsequence.end()) {
       if ((*subsequenceIt).equals(*altIt)) {
           ++subsequenceIt;
           ++altIt;
       } else {
           if (type == INSERTION) {
-	    builder.registerInsertedLine(subsequenceIt->getNumber(), altIt->getString());
+	    builder.registerInsertedLine(subsequenceIt->getNumber(),
+					 altIt->getString());
           } else {
             builder.registerDeletedLine(altIt->getNumber(), altIt->getString());
           }
@@ -120,7 +123,8 @@ static Diff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
     return result;
 }
 
-Diff SubsequenceAnalyzer::calculateDiff(const vector<Line>& s, const vector<Line>& t) {
+Diff SubsequenceAnalyzer::calculateDiff(const vector<Line>& s,
+					const vector<Line>& t) {
     vector<Line> subsequence;
     Diff d = subsequenceLength(s, t, subsequence);
     return d;
