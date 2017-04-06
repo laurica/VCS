@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -g -MMD -Wall -std=c++11
 EXEC = vcs
-OBJECTS = DiffApplier.o DiffBuilder.o DiffElement.o Diff.o FileParser.o FileWriter.o Line.o SubsequenceAnalyzer.o main.o
+OBJECTS = DiffApplier.o DiffBuilder.o DiffElement.o Diff.o FileParser.o FileWriter.o Interpretor.o Line.o OperationAccumulator.o SubsequenceAnalyzer.o main.o
 DEPENDS = ${OBJECTS:.o=.d}
 
 
