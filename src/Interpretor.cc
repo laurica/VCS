@@ -6,7 +6,17 @@
 using namespace std;
 
 Interpretor::Interpretor(OperationAccumulator& accumulator) :
-  accumulator(accumulator) {}
+  accumulator(accumulator) {
+  errorMessages[NOT_ENOUGH_ARGS] = "Not enough arguments! Please try again.";
+  errorMessages[TOO_MANY_ARGS] = "Too many arguments! Please try again.";
+  errorMessages[FILE_NOT_FOUND] = "Specified file not found!";
+  errorMessages[PROJECT_ALREADY_INITIALIZED] =
+    "KIL project already exists within directory!";
+  errorMessages[UNRECOGNIZED_COMMAND] =
+    "Command not recognized! Please try again.";
+  errorMessages[PROJECT_UNINITIALIZED] =
+    "Must initialize a KIL project in order to perform an operation.";
+}
 
 static bool reachedTerminatingCommand(const string& command) {
   return command == "q" || command == "quit";
@@ -16,14 +26,14 @@ void Interpretor::parseAdd(istringstream& input) const {
   string fileArg;
 
   if (!(input >> fileArg)) {
-    cout << "Not enough arguments! Please try again." << endl;
+    cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
     return;
   }
 
   string extraArg;
 
   if (input >> extraArg) {
-    cout << "Too many arguments! Please try again." << endl;
+    cout << errorMessages.at(TOO_MANY_ARGS) << endl;
     return;
   }
 
@@ -32,7 +42,7 @@ void Interpretor::parseAdd(istringstream& input) const {
     cout << "File " << fileArg << " is now tracked." << endl;
     accumulator.addFile(fileArg);
   } else {
-    cout << "Specified file not found!" << endl;
+    cout << errorMessages.at(FILE_NOT_FOUND) << endl;
   }
 }
 
@@ -44,11 +54,11 @@ void Interpretor::parseCommand(const string& command) const {
 
   if (firstToken != "") {
     if (firstToken == "init") {
-      cout << "KIL project already exists within directory!" << endl;
+      cout << errorMessages.at(PROJECT_ALREADY_INITIALIZED) << endl;
     } else if (firstToken == "add") {
       parseAdd(input);
     } else {
-      cout << "Command not recognized! Please try again." << endl;
+      cout << errorMessages.at(UNRECOGNIZED_COMMAND) << endl;
     }
   }
 }
@@ -57,13 +67,13 @@ bool Interpretor::parseInit(istringstream& input) const {
   string projectName;
 
   if (!(input >> projectName)) {
-    cout << "Not enough arguments! Please try again." << endl;
+    cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
     return true;
   }
 
   string remainingArgs;
   if (input >> remainingArgs) {
-    cout << "Too many arguments! Please try again." << endl;
+    cout << errorMessages.at(TOO_MANY_ARGS) << endl;
     return true;
   }
 
@@ -96,11 +106,10 @@ bool Interpretor::parseFirstCommand(const string& command) const {
     
   if (firstToken != "init") {
     if (!isValidOperation(firstToken)) {
-      cout << "Command not recognized! Please try again." << endl;
+      cout << errorMessages.at(UNRECOGNIZED_COMMAND) << endl;
       return true;
     }
-    cout << "Must initialize a KIL project in order to perform an operation."
-	 << endl;
+    cout << errorMessages.at(PROJECT_UNINITIALIZED) << endl;
     return true;
   }
 
