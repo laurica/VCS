@@ -8,7 +8,7 @@
 using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
-  projectInit(false), projectInitializedThisRun(false) {
+  projectInit(false), projectInitializedThisRun(false), fileAdded(false) {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
@@ -30,11 +30,22 @@ bool OperationAccumulator::alreadyTracked(const string& fileName) const {
   return false;
 }
 
-void OperationAccumulator::addFile(const string& fileName) {
+bool OperationAccumulator::addFile(const string& fileName) {
+  vector<string> lines;
+  // read in from the trackedFiles file
+  FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
+  for (string fileName : lines) {
+    trackedFiles.push_back(fileName);
+  }
+  
   // Do we already have this file
   if (!alreadyTracked(fileName)) {
     trackedFiles.push_back(fileName);
+    fileAdded = true;
+    return true;
   }
+
+  return false;
 }
 
 void OperationAccumulator::outputTrackedFiles() const {
@@ -75,7 +86,7 @@ bool OperationAccumulator::outputBasicInfo() const {
 bool OperationAccumulator::initialize() {
   // try and see if the .kil directory is created
   if (!(FileSystemInterface::fileExists(fileNames.at(FileName::MAIN_DIR)))) {
-    return false;
+    return true;
   }
 
   projectInit = true;
@@ -106,14 +117,7 @@ bool OperationAccumulator::initialize() {
   }
 
   projectName = lines[0].substr(lines[0].find("projName=") + 8);
-
-  // read in from the trackedFiles file
-  lines.clear();
-  FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
-  for (string fileName : lines) {
-    trackedFiles.push_back(fileName);
-  }
-
+  
   return true;
 }
 
@@ -127,6 +131,8 @@ void OperationAccumulator::saveState() const {
       return;
     }
   }
-  
-  outputTrackedFiles();
+
+  if (fileAdded) {
+    outputTrackedFiles();
+  }
 }

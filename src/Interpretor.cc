@@ -46,8 +46,12 @@ void Interpretor::parseAdd(istringstream& input) const {
 
   // Otherwise, we're fine
   if (FileSystemInterface::fileExists(fileArg.c_str())) {
-    cout << "File " << fileArg << " is now tracked." << endl;
-    accumulator.addFile(fileArg);
+    bool actuallyAdded = accumulator.addFile(fileArg);
+    if (actuallyAdded) {
+      cout << "File " << fileArg << " is now tracked." << endl;
+    } else {
+      cout << "File " << fileArg << " was already tracked." << endl;
+    }
   } else {
     cout << errorMessages.at(FILE_NOT_FOUND) << endl;
   }
