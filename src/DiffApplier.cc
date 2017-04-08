@@ -11,8 +11,8 @@ static void reindex(vector<Line>& file) {
   }
 }
 
-void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
-			    vector<Line>& newFile) {
+void DiffApplier::applyDiff(const vector<Line>& originalFile,
+			    const FileDiff& diff, vector<Line>& newFile) {
   /*************** copy everything from originalFile to newFile ***************/
   for (vector<Line>::const_iterator it = originalFile.begin();
        it != originalFile.end(); ++it) {
@@ -77,8 +77,8 @@ void DiffApplier::applyDiff(const vector<Line>& originalFile, const Diff& diff,
   } // end for loop
 }
 
-void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile, const Diff& diff1,
-				 const Diff& diff2) {
+void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile,
+				 const FileDiff& diff1, const FileDiff& diff2) {
   vector<Line> newFile;
   DiffApplier::applyDiff(baseFile, diff1, newFile);
   reindex(newFile);
@@ -89,10 +89,10 @@ void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile, const Diff& diff1,
 }
 
 void DiffApplier::applyManyDiffs(std::vector<Line>& baseFile,
-				 std::queue<Diff>& diffsToApply) {
+				 std::queue<FileDiff>& diffsToApply) {
   while (!diffsToApply.empty()) {
     vector<Line> newFile;
-    Diff d = diffsToApply.front();
+    FileDiff d = diffsToApply.front();
     diffsToApply.pop();
     DiffApplier::applyDiff(baseFile, d, newFile);
     reindex(newFile);

@@ -3,13 +3,14 @@
 
 #include <vector>
 
-#include "Diff.h"
+#include "FileDiff.h"
 #include "Line.h"
 
 class SubsequenceAnalyzer 
 {
 public:
-    static Diff calculateDiff(const std::vector<Line>& s, const std::vector<Line>& t);
+    static FileDiff calculateDiff(const std::vector<Line>& s,
+				  const std::vector<Line>& t);
 };
 
 #endif

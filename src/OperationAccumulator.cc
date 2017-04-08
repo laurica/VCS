@@ -9,7 +9,8 @@ using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
   projectInit(false), projectInitializedThisRun(false), fileAdded(false),
-  branchChanged(false) {
+  listOfFilesRead(false),
+  branchChanged(false), treeInitialized(false) {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
@@ -19,6 +20,7 @@ void OperationAccumulator::initializeProject(const std::string& fileName) {
   projectInit = true;
   projectInitializedThisRun = true;
   projectName = fileName;
+  
   branchChanged = true;
   curBranch = "Master";
 }
@@ -30,15 +32,24 @@ bool OperationAccumulator::alreadyTracked(const string& fileName) const {
     }
   }
 
+  for (string file : addedFiles) {
+    if (fileName == file) {
+      return true;
+    }
+  }
+
   return false;
 }
 
 bool OperationAccumulator::addFile(const string& fileName) {
-  vector<string> lines;
-  // read in from the trackedFiles file
-  FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
-  for (string fileName : lines) {
-    trackedFiles.push_back(fileName);
+  if (!listOfFilesRead) {
+    vector<string> lines;
+    // read in from the trackedFiles file
+    FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
+    for (string fileName : lines) {
+      trackedFiles.push_back(fileName);
+    }
+    listOfFilesRead = true;
   }
   
   // Do we already have this file
@@ -58,6 +69,10 @@ void OperationAccumulator::outputTrackedFiles() const {
   outputStream.open(trackedFileConfigFileName, fstream::out);
 
   for (string fileName : trackedFiles) {
+    outputStream << fileName << "\n";
+  }
+
+  for (string fileName : addedFiles) {
     outputStream << fileName << "\n";
   }
   
@@ -158,4 +173,16 @@ bool OperationAccumulator::isInitialized() const {
 
 string OperationAccumulator::getCurBranchName() const {
   return curBranch;
+}
+
+void OperationAccumulator::createDiff() const {
+  if (!treeInitialized) {
+  }
+}
+
+void OperationAccumulator::commit() {
+  if (!treeInitialized) {
+    treeInitialized = true;
+    tree.initialize();
+  }
 }

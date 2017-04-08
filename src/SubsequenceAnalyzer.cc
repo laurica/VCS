@@ -1,6 +1,3 @@
-#include <iostream>
-
-#include "Diff.h"
 #include "DiffApplier.h"
 #include "DiffBuilder.h"
 #include "DiffElement.h"
@@ -48,8 +45,9 @@ static void getDeltas(const vector<Line>& subsequence,
     }
 }
 
-static Diff getSubsequence(int ** grid, const vector<Line>& s,
-			   const vector<Line>& t, vector<Line>& subsequence) {
+static FileDiff getSubsequence(int ** grid, const vector<Line>& s,
+			       const vector<Line>& t,
+			       vector<Line>& subsequence) {
     int sLen = s.size();
     int tLen = t.size();
 
@@ -73,12 +71,12 @@ static Diff getSubsequence(int ** grid, const vector<Line>& s,
     getDeltas(subsequence, t, builder, INSERTION);
     getDeltas(subsequence, s, builder, DELETION);
 
-    Diff d = builder.build();    
+    FileDiff d = builder.build();    
     return d;
 }
 
-static Diff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
-			      vector<Line>& subsequence) {
+static FileDiff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
+				  vector<Line>& subsequence) {
     int sLen = s.size();
     int tLen = t.size();
 
@@ -112,7 +110,7 @@ static Diff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
         }
     }
     
-    Diff result = getSubsequence(grid, s, t, subsequence);
+    FileDiff result = getSubsequence(grid, s, t, subsequence);
     
     for (int i = 0; i <= tLen; ++i) {
         delete[] grid[i];
@@ -123,9 +121,9 @@ static Diff subsequenceLength(const vector<Line>& s, const vector<Line>& t,
     return result;
 }
 
-Diff SubsequenceAnalyzer::calculateDiff(const vector<Line>& s,
-					const vector<Line>& t) {
+FileDiff SubsequenceAnalyzer::calculateDiff(const vector<Line>& s,
+					    const vector<Line>& t) {
     vector<Line> subsequence;
-    Diff d = subsequenceLength(s, t, subsequence);
+    FileDiff d = subsequenceLength(s, t, subsequence);
     return d;
 }

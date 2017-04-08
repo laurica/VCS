@@ -39,13 +39,13 @@ static void addFinalElementAndClear(vector<Line>& lines,
   }
 }
 
-Diff DiffBuilder::build() {
+FileDiff DiffBuilder::build() {
   // If there is anything in the inserted/deleted line vectors, generate another
   // diff element.
   addFinalElementAndClear(deletedLines, deletions, DELETION);
   addFinalElementAndClear(insertedLines, insertions, INSERTION);
   
-  Diff d(insertions, deletions);
+  FileDiff d(insertions, deletions);
   
   insertions.clear();
   deletions.clear();

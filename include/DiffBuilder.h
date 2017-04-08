@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "Diff.h"
+#include "FileDiff.h"
 #include "DiffElement.h"
 #include "Line.h"
 
@@ -19,7 +19,7 @@ class DiffBuilder {
  public:
   void registerDeletedLine(const unsigned int index, const std::string& text);
   void registerInsertedLine(const unsigned int index, const std::string& text);
-  Diff build();
+  FileDiff build();
 };
 
 #endif

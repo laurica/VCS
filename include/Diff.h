@@ -1,19 +1,15 @@
 #ifndef DIFF
 #define DIFF
 
+#include <string>
 #include <vector>
 
-#include "DiffElement.h"
+#include "FileDiff.h"
 
 class Diff {
-  const std::vector<DiffElement> insertions;
-  const std::vector<DiffElement> deletions;
- public:
-  Diff(const std::vector<DiffElement> insertions,
-       const std::vector<DiffElement> deletions);
-  const std::vector<DiffElement>& getDeletions() const;
-  const std::vector<DiffElement>& getInsertions() const;
-  void print() const;
+  std::vector<std::pair<std::string, std::vector<std::string> > > addedFiles;
+  std::vector<std::string> deletedFiles;
+  std::vector<std::pair<std::string, FileDiff> > diffs;
 };
 
 #endif
