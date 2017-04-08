@@ -19,7 +19,9 @@ class OperationAccumulator {
   std::string projectName;
   bool fileAdded;
   std::vector<std::string> trackedFiles;
-
+  bool branchChanged;
+  std::string curBranch;
+  
   void outputTrackedFiles() const;
   bool outputBasicInfo() const;
   bool alreadyTracked(const std::string& fileName) const;
@@ -30,6 +32,8 @@ public:
   void initializeProject(const std::string& projectName);
   void saveState() const;
   bool initialize();
+  bool isInitialized() const;
+  std::string getCurBranchName() const;
 };
 
 #endif

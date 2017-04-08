@@ -78,12 +78,12 @@ bool Interpretor::parseInit(istringstream& input) const {
   string projectName;
 
   if (!parseOneArgument(input, projectName)) {
-    return true;
+    return false;
   }
 
   accumulator.initializeProject(projectName);
   cout << "Project " << projectName << " successfully initialized." << endl;
-  return false;
+  return true;
 }
 
 static bool isValidOperation(const string& command) {
@@ -99,11 +99,6 @@ static bool isValidOperation(const string& command) {
 }
 
 bool Interpretor::parseFirstCommand(const string& command) const {
-  if (FileSystemInterface::fileExists("./.kil")) {
-    parseCommand(command);
-    return false;
-  }
-
   istringstream input(command);
   string firstToken;
   input >> firstToken;
@@ -111,10 +106,10 @@ bool Interpretor::parseFirstCommand(const string& command) const {
   if (firstToken != "init") {
     if (!isValidOperation(firstToken)) {
       cout << errorMessages.at(UNRECOGNIZED_COMMAND) << endl;
-      return true;
+      return false;
     }
     cout << errorMessages.at(PROJECT_UNINITIALIZED) << endl;
-    return true;
+    return false;
   }
 
   return parseInit(input);
@@ -123,17 +118,25 @@ bool Interpretor::parseFirstCommand(const string& command) const {
 void Interpretor::interpret() const {
   string command;
 
+  bool initialized = accumulator.isInitialized();
+
+  if (initialized) {
+    cout << "(" << accumulator.getCurBranchName() << ") ";
+  }
+  
   cout << "> ";
 
-  bool firstCommand = true;
-  
   while (getline(cin, command) && !reachedTerminatingCommand(command)) {
-    if (firstCommand) {
-      firstCommand = parseFirstCommand(command);
+    if (!initialized) {
+      initialized = parseFirstCommand(command);
+      if (initialized) {
+	cout << "(" << accumulator.getCurBranchName() << ")" << " > " << flush;
+      } else {
+	cout << "> " << flush;
+      }
     } else {
       parseCommand(command);
+      cout << "(" << accumulator.getCurBranchName() << ")" << " > " << flush;
     }
-
-    cout << "> " << flush;
   }
 }

@@ -8,7 +8,8 @@
 using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
-  projectInit(false), projectInitializedThisRun(false), fileAdded(false) {
+  projectInit(false), projectInitializedThisRun(false), fileAdded(false),
+  branchChanged(false) {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
@@ -18,6 +19,8 @@ void OperationAccumulator::initializeProject(const std::string& fileName) {
   projectInit = true;
   projectInitializedThisRun = true;
   projectName = fileName;
+  branchChanged = true;
+  curBranch = "Master";
 }
 
 bool OperationAccumulator::alreadyTracked(const string& fileName) const {
@@ -76,7 +79,8 @@ bool OperationAccumulator::outputBasicInfo() const {
   outputStream.open(basicProjectInfoFileName, fstream::out);
 
   outputStream << "projName=" << projectName << "\n";
-
+  outputStream << "curBranch=" << curBranch << "\n";
+  
   outputStream << flush;
   outputStream.close();
 
@@ -102,7 +106,7 @@ bool OperationAccumulator::initialize() {
   vector<string> lines;
   FileParser::readFile(fileNames.at(FileName::BASIC_INFO), lines);
 
-  if (lines.size() != 1) {
+  if (lines.size() != 2) {
     cout << error << endl;
     return false;
   }
@@ -112,11 +116,22 @@ bool OperationAccumulator::initialize() {
     return false;
   }
 
-  if (lines[0].substr(lines[0].find("projName=") + 8).length() == 0) {
+  if (lines[0].substr(9).length() == 0) {
     cout << error << endl;
   }
 
-  projectName = lines[0].substr(lines[0].find("projName=") + 8);
+  if (lines[1].find("curBranch=") != 0) {
+    cout << error << endl;
+    return false;
+  }
+
+  if (lines[1].substr(10).length() == 0) {
+    cout << error << endl;
+    return false;
+  }
+
+  projectName = lines[0].substr(9);
+  curBranch = lines[1].substr(10);
   
   return true;
 }
@@ -135,4 +150,12 @@ void OperationAccumulator::saveState() const {
   if (fileAdded) {
     outputTrackedFiles();
   }
+}
+
+bool OperationAccumulator::isInitialized() const {
+  return projectInit;
+}
+
+string OperationAccumulator::getCurBranchName() const {
+  return curBranch;
 }
