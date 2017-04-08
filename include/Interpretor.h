@@ -9,12 +9,14 @@
 class Interpretor {
   OperationAccumulator& accumulator;
 
-  bool parseInit(std::istringstream& input);
-  bool parseFirstCommand(const std::string& command);
+  bool parseInit(std::istringstream& input) const;
+  bool parseFirstCommand(const std::string& command) const;
+  void parseCommand(const std::string& command) const;
+  void parseAdd(std::istringstream& input) const;
   
  public:
   Interpretor(OperationAccumulator& accumulator);
-  void interpret();
+  void interpret() const;
 };
 
 #endif

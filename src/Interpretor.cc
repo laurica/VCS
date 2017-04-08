@@ -1,8 +1,6 @@
 #include <iostream>
 
-#include <sys/stat.h>
-#include <sys/types.h>
-
+#include "FileSystemInterface.h"
 #include "Interpretor.h"
 
 using namespace std;
@@ -14,7 +12,31 @@ static bool reachedTerminatingCommand(const string& command) {
   return command == "q" || command == "quit";
 }
 
-static void parseCommand(const string& command) {
+void Interpretor::parseAdd(istringstream& input) const {
+  string fileArg;
+
+  if (!(input >> fileArg)) {
+    cout << "Not enough arguments! Please try again." << endl;
+    return;
+  }
+
+  string extraArg;
+
+  if (input >> extraArg) {
+    cout << "Too many arguments! Please try again." << endl;
+    return;
+  }
+
+  // Otherwise, we're fine
+  if (FileSystemInterface::fileExists(fileArg.c_str())) {
+    cout << "File " << fileArg << " is now tracked." << endl;
+    accumulator.addFile(fileArg);
+  } else {
+    cout << "Specified file not found!" << endl;
+  }
+}
+
+void Interpretor::parseCommand(const string& command) const {
   istringstream input(command);
   string firstToken = "";
 
@@ -24,26 +46,14 @@ static void parseCommand(const string& command) {
     if (firstToken == "init") {
       cout << "KIL project already exists within directory!" << endl;
     } else if (firstToken == "add") {
-      cout << "ADDING" << endl;
+      parseAdd(input);
     } else {
       cout << "Command not recognized! Please try again." << endl;
     }
   }
 }
 
-bool kilDirExists() {
-  struct stat info;
-
-  string kilDirectoryName = "./.kil";
-  
-  if(stat(kilDirectoryName.c_str(), &info) != 0) {
-    return false;
-  }
-
-  return info.st_mode & S_IFDIR;
-}
-
-bool Interpretor::parseInit(istringstream& input) {
+bool Interpretor::parseInit(istringstream& input) const {
   string projectName;
 
   if (!(input >> projectName)) {
@@ -57,7 +67,8 @@ bool Interpretor::parseInit(istringstream& input) {
     return true;
   }
 
-  accumulator.projectInitialized(projectName);
+  accumulator.initializeProject(projectName);
+  cout << "Project " << projectName << " successfully initialized." << endl;
   return false;
 }
 
@@ -69,10 +80,12 @@ static bool isValidOperation(const string& command) {
   if (command == "add") {
     return true;
   }
+
+  return false;
 }
 
-bool Interpretor::parseFirstCommand(const string& command) {
-  if (kilDirExists()) {
+bool Interpretor::parseFirstCommand(const string& command) const {
+  if (FileSystemInterface::fileExists("./.kil")) {
     parseCommand(command);
     return false;
   }
@@ -94,7 +107,7 @@ bool Interpretor::parseFirstCommand(const string& command) {
   return parseInit(input);
 }
 
-void Interpretor::interpret() {
+void Interpretor::interpret() const {
   string command;
 
   cout << "> ";

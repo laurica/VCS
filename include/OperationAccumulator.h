@@ -9,16 +9,17 @@ class OperationAccumulator {
   bool projectInitializedThisRun;
   std::string projectName;
   std::vector<std::string> trackedFiles;
-  std::vector<std::string> filesToAdd;
 
   void outputTrackedFiles() const;
   bool outputBasicInfo() const;
+  bool alreadyTracked(const std::string& fileName) const;
   
 public:
   OperationAccumulator();
   void addFile(const std::string& fileName);
-  void projectInitialized(const std::string& projectName);
+  void initializeProject(const std::string& projectName);
   void saveState() const;
+  bool initialize();
 };
 
 #endif

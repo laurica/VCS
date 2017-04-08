@@ -4,9 +4,8 @@
 
 using namespace std;
 
-void FileParser::readFile(const string fileName, vector<Line>& linesInFile) 
-{
-    ifstream infile(fileName.c_str());
+void FileParser::readFile(const char * fileName, vector<Line>& linesInFile) {
+    ifstream infile(fileName);
     string line;
 
     int i = 0;
@@ -15,4 +14,13 @@ void FileParser::readFile(const string fileName, vector<Line>& linesInFile)
         linesInFile.push_back(Line(i, line));
         ++i;
     }
+}
+
+void FileParser::readFile(const char * fileName, vector<string>& linesInFile) {
+  ifstream infile(fileName);
+  string line;
+
+  while (getline(infile, line)) {
+    linesInFile.push_back(line);
+  }
 }
