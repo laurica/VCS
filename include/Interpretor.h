@@ -25,6 +25,7 @@ class Interpretor {
   bool parseFirstCommand(const std::string& command) const;
   void parseCommand(const std::string& command) const;
   void parseAdd(std::istringstream& input) const;
+  bool parseOneArgument(std::istringstream& input, std::string& arg) const;
   
  public:
   Interpretor(OperationAccumulator& accumulator);

@@ -22,18 +22,25 @@ static bool reachedTerminatingCommand(const string& command) {
   return command == "q" || command == "quit";
 }
 
-void Interpretor::parseAdd(istringstream& input) const {
-  string fileArg;
-
-  if (!(input >> fileArg)) {
+bool Interpretor::parseOneArgument(istringstream& input, string& arg) const {
+  if (!(input >> arg)) {
     cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
-    return;
+    return false;
   }
 
   string extraArg;
 
   if (input >> extraArg) {
     cout << errorMessages.at(TOO_MANY_ARGS) << endl;
+    return false;
+  }
+
+  return true;
+}
+
+void Interpretor::parseAdd(istringstream& input) const {
+  string fileArg;
+  if (!parseOneArgument(input, fileArg)) {
     return;
   }
 
@@ -66,14 +73,7 @@ void Interpretor::parseCommand(const string& command) const {
 bool Interpretor::parseInit(istringstream& input) const {
   string projectName;
 
-  if (!(input >> projectName)) {
-    cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
-    return true;
-  }
-
-  string remainingArgs;
-  if (input >> remainingArgs) {
-    cout << errorMessages.at(TOO_MANY_ARGS) << endl;
+  if (!parseOneArgument(input, projectName)) {
     return true;
   }
 
