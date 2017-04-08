@@ -1,10 +1,19 @@
 #ifndef OPERATIONACCUMULATOR
 #define OPERATIONACCUMULATOR
 
+#include <map>
 #include <string>
 #include <vector>
 
 class OperationAccumulator {
+  enum FileName {
+    MAIN_DIR,
+    BASIC_INFO,
+    TRACKED_FILES
+  };
+
+  std::map<FileName, const char *> fileNames;
+  
   bool projectInit;
   bool projectInitializedThisRun;
   std::string projectName;

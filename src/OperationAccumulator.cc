@@ -8,7 +8,11 @@
 using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
-  projectInit(false), projectInitializedThisRun(false) {}
+  projectInit(false), projectInitializedThisRun(false) {
+  fileNames[FileName::MAIN_DIR] = ".kil";
+  fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
+  fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
+}
 
 void OperationAccumulator::initializeProject(const std::string& fileName) {
   projectInit = true;
@@ -34,7 +38,7 @@ void OperationAccumulator::addFile(const string& fileName) {
 }
 
 void OperationAccumulator::outputTrackedFiles() const {
-  string trackedFileConfigFileName = ".kil/.trackedFiles.txt";
+  string trackedFileConfigFileName = fileNames.at(FileName::TRACKED_FILES);
 
   ofstream outputStream;
   outputStream.open(trackedFileConfigFileName, fstream::out);
@@ -49,12 +53,13 @@ void OperationAccumulator::outputTrackedFiles() const {
 
 bool OperationAccumulator::outputBasicInfo() const {
   string path = "./.kil";
-  if (FileSystemInterface::createDirectory("./.kil") == -1) {
+  if (FileSystemInterface::createDirectory(fileNames.at(FileName::MAIN_DIR))
+      == -1) {
     cout << "Could not initialize project!\n";
     return false;
   }
   
-  string basicProjectInfoFileName = ".kil/.basicInfo.txt";
+  string basicProjectInfoFileName = fileNames.at(FileName::BASIC_INFO);
   
   ofstream outputStream;
   outputStream.open(basicProjectInfoFileName, fstream::out);
@@ -69,7 +74,7 @@ bool OperationAccumulator::outputBasicInfo() const {
 
 bool OperationAccumulator::initialize() {
   // try and see if the .kil directory is created
-  if (!(FileSystemInterface::fileExists("./.kil"))) {
+  if (!(FileSystemInterface::fileExists(fileNames.at(FileName::MAIN_DIR)))) {
     return false;
   }
 
@@ -78,13 +83,13 @@ bool OperationAccumulator::initialize() {
   string error = "Error! KIL information tampered with or missing!";
   
   // make sure that all of the information that needs to be there, is there
-  if (!(FileSystemInterface::fileExists(".kil/.basicInfo.txt"))) {
+  if (!(FileSystemInterface::fileExists(fileNames.at(FileName::BASIC_INFO)))) {
     cout << error << endl;
     return false;
   }
 
   vector<string> lines;
-  FileParser::readFile(".kil/.basicInfo.txt", lines);
+  FileParser::readFile(fileNames.at(FileName::BASIC_INFO), lines);
 
   if (lines.size() != 1) {
     cout << error << endl;
@@ -104,7 +109,7 @@ bool OperationAccumulator::initialize() {
 
   // read in from the trackedFiles file
   lines.clear();
-  FileParser::readFile(".kil/.trackedFiles.txt", lines);
+  FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
   for (string fileName : lines) {
     trackedFiles.push_back(fileName);
   }
