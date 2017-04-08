@@ -61,6 +61,16 @@ bool Interpretor::parseInit(istringstream& input) {
   return false;
 }
 
+static bool isValidOperation(const string& command) {
+  if (command == "init") {
+    return true;
+  }
+
+  if (command == "add") {
+    return true;
+  }
+}
+
 bool Interpretor::parseFirstCommand(const string& command) {
   if (kilDirExists()) {
     parseCommand(command);
@@ -72,6 +82,10 @@ bool Interpretor::parseFirstCommand(const string& command) {
   input >> firstToken;
     
   if (firstToken != "init") {
+    if (!isValidOperation(firstToken)) {
+      cout << "Command not recognized! Please try again." << endl;
+      return true;
+    }
     cout << "Must initialize a KIL project in order to perform an operation."
 	 << endl;
     return true;
