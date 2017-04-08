@@ -14,7 +14,8 @@ class Interpretor {
     TOO_MANY_ARGS,
     FILE_NOT_FOUND,
     PROJECT_ALREADY_INITIALIZED,
-    PROJECT_UNINITIALIZED
+    PROJECT_UNINITIALIZED,
+    INVALID_COMMIT_MESSAGE
   };
 
   std::map<ErrorMessage, const char *> errorMessages;
@@ -26,6 +27,7 @@ class Interpretor {
   void parseCommand(const std::string& command) const;
   void parseAdd(std::istringstream& input) const;
   bool parseOneArgument(std::istringstream& input, std::string& arg) const;
+  void parseCommit(std::string command, std::istringstream& input) const;
   
  public:
   Interpretor(OperationAccumulator& accumulator);

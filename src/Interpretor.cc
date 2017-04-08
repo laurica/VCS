@@ -16,6 +16,8 @@ Interpretor::Interpretor(OperationAccumulator& accumulator) :
     "Command not recognized! Please try again.";
   errorMessages[PROJECT_UNINITIALIZED] =
     "Must initialize a KIL project in order to perform an operation.";
+  errorMessages[INVALID_COMMIT_MESSAGE] =
+    "Please provide a valid commit message.";
 }
 
 static bool reachedTerminatingCommand(const string& command) {
@@ -57,6 +59,60 @@ void Interpretor::parseAdd(istringstream& input) const {
   }
 }
 
+void Interpretor::parseCommit(string command, istringstream& input) const {
+  string nextToken;
+  
+  if (!(input >> nextToken)) {
+    cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
+    return;
+  }
+
+  bool addFlag = false;
+  
+  if (nextToken == "-a") {
+    addFlag = true;
+    if (!(input >> nextToken)) {
+      cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
+      return;
+    }
+  }
+
+  // ensure that the following tokens are a part of the commit message
+  if (nextToken.at(0) != '"') {
+    cout << errorMessages.at(INVALID_COMMIT_MESSAGE) << endl;
+    return;
+  }
+
+  // ensure that the last non-whitespace character is a double-quote
+  bool once = false;
+  while ((input >> nextToken)) {
+    once = true;
+  }
+
+  if (once) {
+    if (nextToken.at(nextToken.length() - 1) != '"') {
+      cout << errorMessages.at(INVALID_COMMIT_MESSAGE) << endl;
+      return;
+    }
+  } else {
+    if (nextToken.length() == 1) {
+      cout << errorMessages.at(INVALID_COMMIT_MESSAGE) << endl;
+      return;
+    }
+
+    if (nextToken.at(nextToken.length() - 1) != '"') {
+      cout << errorMessages.at(INVALID_COMMIT_MESSAGE) << endl;
+      return;
+    }
+  }
+
+  // Now we know we have a valid commit message, we just need to parse it
+  command = command.substr(command.find("\"") + 1);
+  command = command.substr(0, command.find("\""));
+
+  cout << "Commit message is: \"" << command << "\"" << endl;
+}
+
 void Interpretor::parseCommand(const string& command) const {
   istringstream input(command);
   string firstToken = "";
@@ -68,6 +124,8 @@ void Interpretor::parseCommand(const string& command) const {
       cout << errorMessages.at(PROJECT_ALREADY_INITIALIZED) << endl;
     } else if (firstToken == "add") {
       parseAdd(input);
+    } else if (firstToken == "commit") {
+      parseCommit(command, input);
     } else {
       cout << errorMessages.at(UNRECOGNIZED_COMMAND) << endl;
     }
@@ -92,6 +150,10 @@ static bool isValidOperation(const string& command) {
   }
 
   if (command == "add") {
+    return true;
+  }
+
+  if (command == "commit") {
     return true;
   }
 
