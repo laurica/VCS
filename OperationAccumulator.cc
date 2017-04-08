@@ -1,7 +1,7 @@
-#//include <boost/filesystem.hpp>
-
 #include <fstream>
 #include <iostream>
+
+#include <sys/stat.h>
 
 #include "OperationAccumulator.h"
 
@@ -39,12 +39,14 @@ void OperationAccumulator::outputTrackedFiles() const {
 }
 
 bool OperationAccumulator::outputBasicInfo() const {
-  /*boost::filesystem::path dir("./.kil");
-  if(!boost::filesystem::create_directory(dir)) {
-    cout << "Could not initialize project!" << "\n";
-    return false;
-    }*/
-  
+  string path = "./.kil";
+  const int errorCode = mkdir(path.c_str(),
+			      S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+  if (errorCode == -1) {
+    cout << "Could not initialize project!\n";
+      return false;
+  }
+
   string basicProjectInfoFileName = ".kil/.basicInfo.txt";
   
   ofstream outputStream;
