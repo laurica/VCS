@@ -20,3 +20,11 @@ CommitHash::CommitHash(const string& hash) {
     myHash = stoi(hash);
   }
 }
+
+CommitHash CommitHash::getLatestGeneratedHash() {
+  return CommitHash(to_string(curCommitCounter - 1));
+}
+
+void CommitHash::setSeed(const string& lastHash) {
+  curCommitCounter = stoi(lastHash) + 1;
+}

@@ -11,8 +11,8 @@
 using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
-  projectInit(false), projectInitializedThisRun(false), fileAdded(false),
-  fileTracked(false), branchChanged(false), initialCommitPerformed(false), curCommit("") {
+  projectInit(false), projectInitializedThisRun(false), branchChanged(false),
+  initialCommitPerformed(false), curCommit("") {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::ADDED_FILES] = ".kil/.addedFiles.txt";
@@ -49,7 +49,6 @@ bool OperationAccumulator::addFile(const string& fileName) {
   // Do we already have this file
   if (!alreadyTracked(fileName)) {
     addedFiles.push_back(fileName);
-    fileAdded = true;
     return true;
   }
 
@@ -101,6 +100,7 @@ bool OperationAccumulator::outputBasicInfo() const {
   outputStream << "initialCommit=" << (initialCommitPerformed ? "true" : "false")  << "\n";
   if (initialCommitPerformed) {
     outputStream << "curCommit=" << curCommit.toString() << "\n";
+    outputStream << "lastHash=" << CommitHash::getLatestGeneratedHash().toString() << "\n";
   }
   
   outputStream << flush;
@@ -163,6 +163,8 @@ bool OperationAccumulator::initialize() {
     return false;
   }
 
+  cout << "issue here" << endl;
+
   string initialCommitString = lines[2].substr(14);
   
   if (initialCommitString != "true" && initialCommitString != "false") {
@@ -170,18 +172,25 @@ bool OperationAccumulator::initialize() {
     return false;
   }
 
+  cout << "or how about here" << endl;
+
   projectName = lines[0].substr(9);
   curBranch = lines[1].substr(10);
+  
   initialCommitPerformed = initialCommitString == "true" ? true : false;
 
   if (initialCommitPerformed) {
-    if (lines.size() != 4 || lines[3].find("curCommit=") != 0 ||
-	lines[3].substr(10).length() == 0) {
+    if (lines.size() != 5 || lines[3].find("curCommit=") != 0 ||
+	lines[3].substr(10).length() == 0 || lines[4].find("lastHash=") != 0 ||
+	lines[4].substr(9).length() == 0) {
       cout << error << endl;
       return false;
     }
     curCommit = CommitHash(lines[3].substr(10));
+    CommitHash::setSeed(lines[4].substr(9));
   }
+
+  cout << "even lower" << endl;
 
   return readAddedAndTrackedFiles(error);
 }
@@ -197,13 +206,8 @@ void OperationAccumulator::saveState() const {
     }
   }
 
-  if (fileTracked) {
-    outputTrackedFiles();
-  }
-
-  if (fileAdded || fileTracked) {
-    outputAddedFiles();
-  }
+  outputTrackedFiles();
+  outputAddedFiles();
 }
 
 bool OperationAccumulator::isInitialized() const {
@@ -315,10 +319,6 @@ bool OperationAccumulator::commit(const string& commitMessage, const bool addFla
 	verifiedAddedFiles.push_back(addedFile);
       }
     }
-  }
-
-  if (verifiedAddedFiles.size() > 0) {
-    fileTracked = true;
   }
 
   // Now found out which file have been deleted, and gets the diffs for the files that have

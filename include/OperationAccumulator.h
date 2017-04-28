@@ -23,8 +23,6 @@ class OperationAccumulator {
   bool projectInitializedThisRun;
   std::string projectName;
 
-  bool fileAdded;
-  bool fileTracked;
   std::vector<std::string> trackedFiles;
   std::vector<std::string> addedFiles;
   
