@@ -12,10 +12,10 @@ using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
   projectInit(false), projectInitializedThisRun(false), fileAdded(false),
-  branchChanged(false), initialCommitPerformed(false),
-  curCommit("") {
+  fileTracked(false), branchChanged(false), initialCommitPerformed(false), curCommit("") {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
+  fileNames[FileName::ADDED_FILES] = ".kil/.addedFiles.txt";
   fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
   fileNames[FileName::COMMIT_DIR] = ".kil/.commits";
 }
@@ -45,10 +45,7 @@ bool OperationAccumulator::alreadyTracked(const string& fileName) const {
   return false;
 }
 
-bool OperationAccumulator::addFile(const string& fileName) {
-  // TODO!
-  // Keep track of added files
-  
+bool OperationAccumulator::addFile(const string& fileName) {  
   // Do we already have this file
   if (!alreadyTracked(fileName)) {
     addedFiles.push_back(fileName);
@@ -68,7 +65,17 @@ void OperationAccumulator::outputTrackedFiles() const {
   for (string fileName : trackedFiles) {
     outputStream << fileName << "\n";
   }
+  
+  outputStream << flush;
+  outputStream.close();
+}
 
+void OperationAccumulator::outputAddedFiles() const {
+  string addedFileConfigFileName = fileNames.at(FileName::ADDED_FILES);
+
+  ofstream outputStream;
+  outputStream.open(addedFileConfigFileName, fstream::out);
+  
   for (string fileName : addedFiles) {
     outputStream << fileName << "\n";
   }
@@ -102,9 +109,10 @@ bool OperationAccumulator::outputBasicInfo() const {
   return true;
 }
 
-bool OperationAccumulator::readTrackedFiles(const string& errorMessage) {
+bool OperationAccumulator::readAddedAndTrackedFiles(const string& errorMessage) {
   // read in from the trackedFiles file
-  if (!FileSystemInterface::fileExists(fileNames.at(FileName::TRACKED_FILES))) {
+  if (!FileSystemInterface::fileExists(fileNames.at(FileName::TRACKED_FILES)) ||
+      !FileSystemInterface::fileExists(fileNames.at(FileName::ADDED_FILES))) {
     cout << errorMessage << endl;
     return false;
   }
@@ -113,6 +121,12 @@ bool OperationAccumulator::readTrackedFiles(const string& errorMessage) {
   FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
   for (string fileName : lines) {
     trackedFiles.push_back(fileName);
+  }
+
+  lines.clear();
+  FileParser::readFile(fileNames.at(FileName::ADDED_FILES), lines);
+  for (string fileName : lines) {
+    addedFiles.push_back(fileName);
   }
 
   return true;
@@ -169,7 +183,7 @@ bool OperationAccumulator::initialize() {
     curCommit = CommitHash(lines[3].substr(10));
   }
 
-  return readTrackedFiles(error);
+  return readAddedAndTrackedFiles(error);
 }
 
 void OperationAccumulator::saveState() const {
@@ -183,8 +197,12 @@ void OperationAccumulator::saveState() const {
     }
   }
 
-  if (fileAdded) {
+  if (fileTracked) {
     outputTrackedFiles();
+  }
+
+  if (fileAdded || fileTracked) {
+    outputAddedFiles();
   }
 }
 
@@ -297,6 +315,10 @@ bool OperationAccumulator::commit(const string& commitMessage, const bool addFla
 	verifiedAddedFiles.push_back(addedFile);
       }
     }
+  }
+
+  if (verifiedAddedFiles.size() > 0) {
+    fileTracked = true;
   }
 
   // Now found out which file have been deleted, and gets the diffs for the files that have

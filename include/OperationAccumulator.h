@@ -12,6 +12,7 @@ class OperationAccumulator {
   enum FileName {
     MAIN_DIR,
     BASIC_INFO,
+    ADDED_FILES,
     TRACKED_FILES,
     COMMIT_DIR
   };
@@ -23,6 +24,7 @@ class OperationAccumulator {
   std::string projectName;
 
   bool fileAdded;
+  bool fileTracked;
   std::vector<std::string> trackedFiles;
   std::vector<std::string> addedFiles;
   
@@ -33,10 +35,11 @@ class OperationAccumulator {
   CommitHash curCommit;
   
   void outputTrackedFiles() const;
+  void outputAddedFiles() const;
   bool outputBasicInfo() const;
   bool alreadyTracked(const std::string& fileName) const;
   void createDiff() const;
-  bool readTrackedFiles(const std::string& errorMessage);
+  bool readAddedAndTrackedFiles(const std::string& errorMessage);
   
 public:
   OperationAccumulator();
