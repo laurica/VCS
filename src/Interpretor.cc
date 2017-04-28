@@ -18,6 +18,7 @@ Interpretor::Interpretor(OperationAccumulator& accumulator) :
     "Must initialize a KIL project in order to perform an operation.";
   errorMessages[INVALID_COMMIT_MESSAGE] =
     "Please provide a valid commit message.";
+  errorMessages[NOTHING_TO_COMMIT] = "No changes staged for commit!";
 }
 
 static bool reachedTerminatingCommand(const string& command) {
@@ -110,7 +111,13 @@ void Interpretor::parseCommit(string command, istringstream& input) const {
   command = command.substr(command.find("\"") + 1);
   command = command.substr(0, command.find("\""));
 
-  cout << "Commit message is: \"" << command << "\"" << endl;
+  bool changesToCommit = accumulator.commit(command, addFlag);
+  
+  if (!changesToCommit) {
+    cout << errorMessages.at(NOTHING_TO_COMMIT) << endl;
+  }
+  
+  //cout << "Commit message is: \"" << command << "\"" << endl;
 }
 
 void Interpretor::parseCommand(const string& command) const {

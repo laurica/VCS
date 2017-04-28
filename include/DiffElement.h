@@ -1,6 +1,7 @@
 #ifndef DIFFELEMENT
 #define DIFFELEMENT
 
+#include <iostream>
 #include <vector>
 
 #include "Line.h"
@@ -22,7 +23,7 @@ class DiffElement {
   unsigned int getNumLines() const;
   const std::vector<std::string>& getLines() const;
   unsigned int getBaseStartingLine() const;
-  void print() const;
+  void print(std::ostream& os) const;
 };
 
 #endif

@@ -10,19 +10,18 @@ DiffElement::DiffElement(const ElementType type,
 
   baseStartingLine = linesToAdd[0].getNumber();
   
-  for (vector<Line>::const_iterator it = linesToAdd.begin(); it !=
-	 linesToAdd.end(); ++it) {
-    lines.push_back(it->getString());
+  for (const Line& line : linesToAdd) {
+    lines.push_back(line.getString());
   }
 }
 
-void DiffElement::print() const {
-  cout << (type == INSERTION ? "INSERTED:" : "DELETED") << " (line " <<
-    baseStartingLine << ")" << endl;
-  for (vector<string>::const_iterator it = lines.begin(); it != lines.end();
-       ++it) {
-    cout << *it << endl;
+void DiffElement::print(ostream& os) const {
+  cout << (type == INSERTION ? "inserted" : "deleted") << " - " << baseStartingLine << endl;
+  for (const string& line : lines) {
+    os << line << "\n";
   }
+
+  os << flush;
 }
 
 unsigned int DiffElement::getNumLines() const {

@@ -4,12 +4,12 @@
 
 using namespace std;
 
-void FileWriter::writeFile(vector<Line>& lines, string fileName) {
+void FileWriter::writeFile(const char * fileName, const vector<string>& lines) {
   ofstream file;
   file.open(fileName);
 
-  for (Line line : lines) {
-    file << line.getString() << endl;
+  for (const string& line : lines) {
+    file << line << endl;
   }
 
   file.close();

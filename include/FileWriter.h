@@ -8,7 +8,7 @@
 
 class FileWriter {
  public:
-  static void writeFile(std::vector<Line>& lines, std::string fileName);
+  static void writeFile(const char * fileName, const std::vector<std::string>& lines);
 };
 
 #endif

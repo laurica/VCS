@@ -15,7 +15,8 @@ class Interpretor {
     FILE_NOT_FOUND,
     PROJECT_ALREADY_INITIALIZED,
     PROJECT_UNINITIALIZED,
-    INVALID_COMMIT_MESSAGE
+    INVALID_COMMIT_MESSAGE,
+    NOTHING_TO_COMMIT
   };
 
   std::map<ErrorMessage, const char *> errorMessages;
