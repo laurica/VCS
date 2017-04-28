@@ -240,7 +240,9 @@ void OperationAccumulator::writeOutCommit(
     FileSystemInterface::createDirectory(newCommitDirectoryPath.c_str());
 
     ofstream output;
-    output.open(newCommitDirectoryPath.c_str(), fstream::out);
+    string newCommitFileName =
+      FileSystemInterface::appendPath(newCommitDirectoryPath, hash.toString().c_str());
+    output.open((newCommitFileName + ".txt").c_str(), fstream::out);
     output << "commitHash=" << hash.toString() << "\n";
     output << "commitMessage=\"" << commitMessage << "\"\n";
 
