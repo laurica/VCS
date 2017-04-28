@@ -12,7 +12,7 @@ using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
   projectInit(false), projectInitializedThisRun(false), fileAdded(false),
-  listOfFilesRead(false), branchChanged(false), initialCommitPerformed(false),
+  branchChanged(false), initialCommitPerformed(false),
   curCommit("") {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
@@ -46,19 +46,12 @@ bool OperationAccumulator::alreadyTracked(const string& fileName) const {
 }
 
 bool OperationAccumulator::addFile(const string& fileName) {
-  if (!listOfFilesRead) {
-    vector<string> lines;
-    // read in from the trackedFiles file
-    FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
-    for (string fileName : lines) {
-      trackedFiles.push_back(fileName);
-    }
-    listOfFilesRead = true;
-  }
+  // TODO!
+  // Keep track of added files
   
   // Do we already have this file
   if (!alreadyTracked(fileName)) {
-    trackedFiles.push_back(fileName);
+    addedFiles.push_back(fileName);
     fileAdded = true;
     return true;
   }
@@ -109,6 +102,22 @@ bool OperationAccumulator::outputBasicInfo() const {
   return true;
 }
 
+bool OperationAccumulator::readTrackedFiles(const string& errorMessage) {
+  // read in from the trackedFiles file
+  if (!FileSystemInterface::fileExists(fileNames.at(FileName::TRACKED_FILES))) {
+    cout << errorMessage << endl;
+    return false;
+  }
+
+  vector<string> lines;
+  FileParser::readFile(fileNames.at(FileName::TRACKED_FILES), lines);
+  for (string fileName : lines) {
+    trackedFiles.push_back(fileName);
+  }
+
+  return true;
+}
+
 bool OperationAccumulator::initialize() {
   // try and see if the .kil directory is created
   if (!(FileSystemInterface::fileExists(fileNames.at(FileName::MAIN_DIR)))) {
@@ -117,7 +126,7 @@ bool OperationAccumulator::initialize() {
 
   projectInit = true;
 
-  string error = "Error! KIL information tampered with or missing!";
+  const string error = "Error! KIL information tampered with or missing!";
   
   // make sure that all of the information that needs to be there, is there
   if (!(FileSystemInterface::fileExists(fileNames.at(FileName::BASIC_INFO)))) {
@@ -159,8 +168,8 @@ bool OperationAccumulator::initialize() {
     }
     curCommit = CommitHash(lines[3].substr(10));
   }
-  
-  return true;
+
+  return readTrackedFiles(error);
 }
 
 void OperationAccumulator::saveState() const {
@@ -212,13 +221,20 @@ void OperationAccumulator::calculateRemovalsAndDiffs(
 void OperationAccumulator::writeOutCommit(
     const string& commitMessage, const vector<string>& addedFiles,
     const vector<string>& removedFiles,
-    const vector<pair<string, FileDiff> >& diffs) const {
+    const vector<pair<string, FileDiff> >& diffs) {
     // first, write it out in the pool of diffs
     CommitHash hash;
+    curCommit = hash;
 
     string newCommitDirectoryPath =
       FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
 				      hash.toString().c_str());
+
+    if (!initialCommitPerformed) {
+      vector<string> directories;
+      FileSystemInterface::parseDirectoryStructure(newCommitDirectoryPath, directories);
+      FileSystemInterface::createDirectories("", directories);
+    }
     
     // Create new directory with hash
     FileSystemInterface::createDirectory(newCommitDirectoryPath.c_str());
@@ -244,7 +260,7 @@ void OperationAccumulator::writeOutCommit(
           FileSystemInterface::appendPath(newCommitDirectoryPath, newFile).c_str(),
 	                                  fileLines);
     }
-
+    
     // now write out the removed files
     output << "removedFiles [" << removedFiles.size() << "]\n";
     for (string removedFile : removedFiles) {
@@ -253,7 +269,7 @@ void OperationAccumulator::writeOutCommit(
 
     // write out which files have diffs
     output << "diffs [" << diffs.size() << "]\n";
-
+    
     // now write out the diffs
     for (const pair<string, FileDiff>& diffInfo : diffs) {
       vector<string> directories;
@@ -268,9 +284,9 @@ void OperationAccumulator::writeOutCommit(
     output.close();
 }
 
-bool OperationAccumulator::commit(const string& commitMessage, const bool addFlag) {
+bool OperationAccumulator::commit(const string& commitMessage, const bool addFlag) {  
   vector<string> verifiedAddedFiles;
-
+  
   if (addFlag) {
     // Make sure that files that were added haven't been deleted in the time since they've
     // been added
@@ -290,12 +306,11 @@ bool OperationAccumulator::commit(const string& commitMessage, const bool addFla
   if (verifiedAddedFiles.size() == 0 && removedFiles.size() == 0 && diffs.size() == 0) {
     return false;
   }
-  
+
   // We're going to output this info now
   writeOutCommit(commitMessage, verifiedAddedFiles, removedFiles, diffs);
 
   // Update internal state
-
   if (addFlag) {
     for (string addedFile : verifiedAddedFiles) {
       trackedFiles.push_back(addedFile);
@@ -303,5 +318,7 @@ bool OperationAccumulator::commit(const string& commitMessage, const bool addFla
     addedFiles.clear();
   }
 
+  initialCommitPerformed = true;
+  
   return true;
 }

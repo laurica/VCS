@@ -23,7 +23,6 @@ class OperationAccumulator {
   std::string projectName;
 
   bool fileAdded;
-  bool listOfFilesRead;
   std::vector<std::string> trackedFiles;
   std::vector<std::string> addedFiles;
   
@@ -37,6 +36,7 @@ class OperationAccumulator {
   bool outputBasicInfo() const;
   bool alreadyTracked(const std::string& fileName) const;
   void createDiff() const;
+  bool readTrackedFiles(const std::string& errorMessage);
   
 public:
   OperationAccumulator();
@@ -53,7 +53,7 @@ public:
   void writeOutCommit(
       const std::string& commitMessage, const std::vector<std::string>& addedFiles,
       const std::vector<std::string>& removedFiles,
-      const std::vector<std::pair<std::string, FileDiff> >& diffs) const;
+      const std::vector<std::pair<std::string, FileDiff> >& diffs);
 };
 
 #endif

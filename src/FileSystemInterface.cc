@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <sys/stat.h>
 
 #include "FileSystemInterface.h"
@@ -20,6 +22,10 @@ const int FileSystemInterface::createDirectory(const char * dirName) {
 
 const string FileSystemInterface::appendPath(const string& firstPart,
 					     const string& secondPart) {
+    if (firstPart.length() == 0) {
+        return secondPart;
+    }
+  
     if (firstPart.at(firstPart.length() - 1) == '/') {
         return firstPart + secondPart;
     }
@@ -29,9 +35,9 @@ const string FileSystemInterface::appendPath(const string& firstPart,
 void FileSystemInterface::parseDirectoryStructure(
     const string& fileName, vector<string>& directories) {
     unsigned int offset = 0;
-  
+    
     while (true) {
-      unsigned int locationOfSlash = fileName.find("/", offset);
+      size_t locationOfSlash = fileName.find("/", offset);
       if (locationOfSlash == std::string::npos) {
 	break;
       }

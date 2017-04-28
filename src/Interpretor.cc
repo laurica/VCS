@@ -19,6 +19,7 @@ Interpretor::Interpretor(OperationAccumulator& accumulator) :
   errorMessages[INVALID_COMMIT_MESSAGE] =
     "Please provide a valid commit message.";
   errorMessages[NOTHING_TO_COMMIT] = "No changes staged for commit!";
+  errorMessages[UNRECOGNIZED_OPTION] = "Unrecognized option! Please try again.";
 }
 
 static bool reachedTerminatingCommand(const string& command) {
@@ -51,7 +52,7 @@ void Interpretor::parseAdd(istringstream& input) const {
   if (FileSystemInterface::fileExists(fileArg.c_str())) {
     bool actuallyAdded = accumulator.addFile(fileArg);
     if (actuallyAdded) {
-      cout << "File " << fileArg << " is now tracked." << endl;
+      cout << "File " << fileArg << " is now staged for commit." << endl;
     } else {
       cout << "File " << fileArg << " was already tracked." << endl;
     }
@@ -78,6 +79,11 @@ void Interpretor::parseCommit(string command, istringstream& input) const {
     }
   }
 
+  if (nextToken.at(0) == '-') {
+    cout << errorMessages.at(UNRECOGNIZED_OPTION) << endl;
+    return;
+  }
+  
   // ensure that the following tokens are a part of the commit message
   if (nextToken.at(0) != '"') {
     cout << errorMessages.at(INVALID_COMMIT_MESSAGE) << endl;
