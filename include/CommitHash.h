@@ -6,7 +6,7 @@
 class CommitHash {
  private:
   static unsigned int curCommitCounter;
-  unsigned int myHash;
+  int myHash;
 
  public:
   CommitHash();

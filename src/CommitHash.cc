@@ -14,6 +14,9 @@ string CommitHash::toString() const {
 }
 
 CommitHash::CommitHash(const string& hash) {
-  unsigned int hashNumber = stoi(hash);
-  myHash = hashNumber;
+  if (hash == "") {
+    myHash = -1;
+  } else {
+    myHash = stoi(hash);
+  }
 }
