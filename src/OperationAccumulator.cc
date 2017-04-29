@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -162,17 +163,13 @@ bool OperationAccumulator::initialize() {
     cout << error << endl;
     return false;
   }
-
-  cout << "issue here" << endl;
-
+  
   string initialCommitString = lines[2].substr(14);
   
   if (initialCommitString != "true" && initialCommitString != "false") {
     cout << error << endl;
     return false;
   }
-
-  cout << "or how about here" << endl;
 
   projectName = lines[0].substr(9);
   curBranch = lines[1].substr(10);
@@ -189,8 +186,6 @@ bool OperationAccumulator::initialize() {
     curCommit = CommitHash(lines[3].substr(10));
     CommitHash::setSeed(lines[4].substr(9));
   }
-
-  cout << "even lower" << endl;
 
   return readAddedAndTrackedFiles(error);
 }
@@ -240,19 +235,9 @@ void OperationAccumulator::calculateRemovalsAndDiffs(
   }
 }
 
-void OperationAccumulator::writeOutCommit(
-    const string& commitMessage, const vector<string>& addedFiles,
-    const vector<string>& removedFiles,
-    const vector<pair<string, FileDiff> >& diffs) {
-    // first, write it out in the pool of diffs
-    CommitHash hash;
-    curCommit = hash;
-
-    string newCommitDirectoryPath =
-      FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
-				      hash.toString().c_str());
-
-    if (!initialCommitPerformed) {
+void OperationAccumulator::createNewCommitDirectory(
+    const string& newCommitDirectoryPath) const {
+  if (!initialCommitPerformed) {
       vector<string> directories;
       FileSystemInterface::parseDirectoryStructure(newCommitDirectoryPath, directories);
       FileSystemInterface::createDirectories("", directories);
@@ -260,6 +245,47 @@ void OperationAccumulator::writeOutCommit(
     
     // Create new directory with hash
     FileSystemInterface::createDirectory(newCommitDirectoryPath.c_str());
+}
+
+string OperationAccumulator::calculateFileLocationForHash(const CommitHash& hash) const {
+  string path = FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR), hash.toString());
+  path = FileSystemInterface::appendPath(path, hash.toString().c_str());
+  path = path + ".txt";
+  return path;
+}
+
+void OperationAccumulator::updateParentCommit(const CommitHash& childHash) const {
+  const string path = calculateFileLocationForHash(curCommit);
+  vector<string> fileContents;
+  FileParser::readFile(path.c_str(), fileContents);
+  
+  assert(fileContents.size() >= 7);
+  assert(fileContents[3].find("childCommits=[") == 0);
+  assert(fileContents[3].at(fileContents[3].length() - 1) == ']');
+
+  string listOfChildren = fileContents[3].substr(14);
+  listOfChildren = listOfChildren.substr(0, listOfChildren.size() - 1);
+  
+  if (listOfChildren.length() == 0) {
+    // this is the first child we're adding
+    fileContents[3] = "childCommits=[" + childHash.toString() + "]";
+  } else {
+    fileContents[3] = "childCommits=[" + listOfChildren + "," + childHash.toString() + "]";
+  }
+
+  FileWriter::writeFile(path.c_str(), fileContents);
+}
+
+void OperationAccumulator::writeOutCommit(
+    const string& commitMessage, const vector<string>& addedFiles,
+    const vector<string>& removedFiles, const vector<pair<string, FileDiff> >& diffs) {
+    CommitHash hash;
+
+    string newCommitDirectoryPath =
+      FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
+				      hash.toString().c_str());
+
+    createNewCommitDirectory(newCommitDirectoryPath);
 
     ofstream output;
     string newCommitFileName =
@@ -267,6 +293,14 @@ void OperationAccumulator::writeOutCommit(
     output.open((newCommitFileName + ".txt").c_str(), fstream::out);
     output << "commitHash=" << hash.toString() << "\n";
     output << "commitMessage=\"" << commitMessage << "\"\n";
+    output << "parentCommit=";
+    if (initialCommitPerformed) {
+      output << curCommit.toString();
+    } else {
+      output << "ROOT";
+    }
+    output << "\n";
+    output << "childCommits=[]\n";
 
     output << "addedFiles [" << addedFiles.size() << "]\n";
     for (string addedFile : addedFiles) {
@@ -304,8 +338,14 @@ void OperationAccumulator::writeOutCommit(
     }
 
     output.flush();
-
     output.close();
+
+    if (initialCommitPerformed) {
+      // update the parent commit
+      updateParentCommit(hash);
+    }
+    
+    curCommit = hash;
 }
 
 bool OperationAccumulator::commit(const string& commitMessage, const bool addFlag) {  

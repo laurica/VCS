@@ -38,6 +38,9 @@ class OperationAccumulator {
   bool alreadyTracked(const std::string& fileName) const;
   void createDiff() const;
   bool readAddedAndTrackedFiles(const std::string& errorMessage);
+  void createNewCommitDirectory(const std::string& newCommitDirectoryPath) const;
+  void updateParentCommit(const CommitHash& childHash) const;
+  std::string calculateFileLocationForHash(const CommitHash& hash) const;
   
 public:
   OperationAccumulator();
