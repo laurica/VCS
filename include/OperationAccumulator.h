@@ -45,6 +45,9 @@ class OperationAccumulator {
   void writeBasicCommitInfo(std::ofstream& output, const std::string& newCommitFileName,
 			    const CommitHash& hash, const std::string& commitMessage) const;
   void removeDeletedFilesFromLists(const std::vector<std::string>& removedFiles);
+  void writeOutAddedFiles(std::ofstream& output,
+			  const std::vector<std::string>& addedFiles,
+			  const std::string& newCommitDirectoryPath) const;
   
 public:
   OperationAccumulator();

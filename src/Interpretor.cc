@@ -122,8 +122,6 @@ void Interpretor::parseCommit(string command, istringstream& input) const {
   if (!changesToCommit) {
     cout << errorMessages.at(NOTHING_TO_COMMIT) << endl;
   }
-  
-  //cout << "Commit message is: \"" << command << "\"" << endl;
 }
 
 void Interpretor::parseCommand(const string& command) const {

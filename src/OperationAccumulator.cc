@@ -316,6 +316,27 @@ void OperationAccumulator::removeDeletedFilesFromLists(const vector<string>& rem
   }
 }
 
+void OperationAccumulator::writeOutAddedFiles(
+    ofstream& output, const vector<string>& addedFiles,
+    const string& newCommitDirectoryPath) const {
+  output << "addedFiles [" << addedFiles.size() << "]\n";
+  for (string addedFile : addedFiles) {
+      cout << "Created file " << addedFile << endl;
+      output << addedFile << "\n";
+  }
+
+  for (const string& newFile : addedFiles) {
+      vector<string> directories;
+      FileSystemInterface::parseDirectoryStructure(newFile, directories);
+      FileSystemInterface::createDirectories(newCommitDirectoryPath, directories);
+      vector<string> fileLines;
+      FileParser::readFile(newFile.c_str(), fileLines);
+      FileWriter::writeFile(
+          FileSystemInterface::appendPath(newCommitDirectoryPath, newFile).c_str(),
+	                                  fileLines);
+  }
+}
+
 void OperationAccumulator::writeOutCommit(
     const string& commitMessage, const vector<string>& addedFiles,
     const vector<string>& removedFiles, const vector<pair<string, FileDiff> >& diffs) {
@@ -332,23 +353,7 @@ void OperationAccumulator::writeOutCommit(
       FileSystemInterface::appendPath(newCommitDirectoryPath, hash.toString().c_str());
     writeBasicCommitInfo(output, newCommitFileName, hash, commitMessage);
 
-    output << "addedFiles [" << addedFiles.size() << "]\n";
-    for (string addedFile : addedFiles) {
-      cout << "Created file " << addedFile << endl;
-      output << addedFile << "\n";
-    }
-
-    // now write out the files themselves
-    for (const string& newFile : addedFiles) {
-      vector<string> directories;
-      FileSystemInterface::parseDirectoryStructure(newFile, directories);
-      FileSystemInterface::createDirectories(newCommitDirectoryPath, directories);
-      vector<string> fileLines;
-      FileParser::readFile(newFile.c_str(), fileLines);
-      FileWriter::writeFile(
-          FileSystemInterface::appendPath(newCommitDirectoryPath, newFile).c_str(),
-	                                  fileLines);
-    }
+    writeOutAddedFiles(output, addedFiles, newCommitDirectoryPath);
     
     // now write out the removed files
     output << "removedFiles [" << removedFiles.size() << "]\n";
