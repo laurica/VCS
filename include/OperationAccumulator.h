@@ -1,6 +1,7 @@
 #ifndef OPERATIONACCUMULATOR
 #define OPERATIONACCUMULATOR
 
+#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
@@ -41,6 +42,8 @@ class OperationAccumulator {
   void createNewCommitDirectory(const std::string& newCommitDirectoryPath) const;
   void updateParentCommit(const CommitHash& childHash) const;
   std::string calculateFileLocationForHash(const CommitHash& hash) const;
+  void writeBasicCommitInfo(std::ofstream& output, const std::string& newCommitFileName,
+			    const CommitHash& hash, const std::string& commitMessage) const;
   
 public:
   OperationAccumulator();

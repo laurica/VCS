@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -276,6 +275,22 @@ void OperationAccumulator::updateParentCommit(const CommitHash& childHash) const
   FileWriter::writeFile(path.c_str(), fileContents);
 }
 
+void OperationAccumulator::writeBasicCommitInfo(
+    ofstream& output, const string& newCommitFileName, const CommitHash& hash,
+    const string& commitMessage) const {
+  output.open((newCommitFileName + ".txt").c_str(), fstream::out);
+  output << "commitHash=" << hash.toString() << "\n";
+  output << "commitMessage=\"" << commitMessage << "\"\n";
+  output << "parentCommit=";
+  if (initialCommitPerformed) {
+    output << curCommit.toString();
+  } else {
+    output << "ROOT";
+  }
+  output << "\n";
+  output << "childCommits=[]\n";
+}
+
 void OperationAccumulator::writeOutCommit(
     const string& commitMessage, const vector<string>& addedFiles,
     const vector<string>& removedFiles, const vector<pair<string, FileDiff> >& diffs) {
@@ -290,17 +305,7 @@ void OperationAccumulator::writeOutCommit(
     ofstream output;
     string newCommitFileName =
       FileSystemInterface::appendPath(newCommitDirectoryPath, hash.toString().c_str());
-    output.open((newCommitFileName + ".txt").c_str(), fstream::out);
-    output << "commitHash=" << hash.toString() << "\n";
-    output << "commitMessage=\"" << commitMessage << "\"\n";
-    output << "parentCommit=";
-    if (initialCommitPerformed) {
-      output << curCommit.toString();
-    } else {
-      output << "ROOT";
-    }
-    output << "\n";
-    output << "childCommits=[]\n";
+    writeBasicCommitInfo(output, newCommitFileName, hash, commitMessage);
 
     output << "addedFiles [" << addedFiles.size() << "]\n";
     for (string addedFile : addedFiles) {
