@@ -124,6 +124,15 @@ void Interpretor::parseCommit(string command, istringstream& input) const {
   }
 }
 
+void Interpretor::parseStatus(istringstream& input) const {
+  string nextToken;
+  if (input >> nextToken) {
+    cout << errorMessages.at(TOO_MANY_ARGS) << endl;
+  }
+
+  accumulator.getStatus();
+}
+
 void Interpretor::parseCommand(const string& command) const {
   istringstream input(command);
   string firstToken = "";
@@ -137,6 +146,8 @@ void Interpretor::parseCommand(const string& command) const {
       parseAdd(input);
     } else if (firstToken == "commit") {
       parseCommit(command, input);
+    } else if (firstToken == "status") {
+      parseStatus(input);
     } else {
       cout << errorMessages.at(UNRECOGNIZED_COMMAND) << endl;
     }

@@ -391,17 +391,21 @@ void OperationAccumulator::writeOutCommit(
     curCommit = hash;
 }
 
+void OperationAccumulator::getAddedFiles(vector<string>& verifiedAddedFiles) const {
+  // Make sure that files that were added haven't been deleted in the time since they've
+  // been added
+  for (const string& addedFile : addedFiles) {
+    if (FileSystemInterface::fileExists(addedFile.c_str())) {
+      verifiedAddedFiles.push_back(addedFile);
+    }
+  }
+}
+
 bool OperationAccumulator::commit(const string& commitMessage, const bool addFlag) {  
   vector<string> verifiedAddedFiles;
   
   if (addFlag) {
-    // Make sure that files that were added haven't been deleted in the time since they've
-    // been added
-    for (const string& addedFile : addedFiles) {
-      if (FileSystemInterface::fileExists(addedFile.c_str())) {
-	verifiedAddedFiles.push_back(addedFile);
-      }
-    }
+    getAddedFiles(verifiedAddedFiles);
   }
 
   // Now found out which file have been deleted, and gets the diffs for the files that have
@@ -428,4 +432,32 @@ bool OperationAccumulator::commit(const string& commitMessage, const bool addFla
   initialCommitPerformed = true;
   
   return true;
+}
+
+void OperationAccumulator::getStatus() const {
+  // Print all the added files
+  vector<string> verifiedAddedFiles;
+  getAddedFiles(verifiedAddedFiles);
+
+  vector<string> removedFiles;
+  vector<pair<string, FileDiff> > diffs;
+  calculateRemovalsAndDiffs(removedFiles, diffs);
+
+  if (verifiedAddedFiles.size() == 0 && removedFiles.size() == 0 && diffs.size() == 0) {
+    cout << "No new changes to be commited!" << endl;
+  } else {
+    cout << "Changes to be committed:" << endl;
+
+    for (const string& addedFileName : verifiedAddedFiles) {
+      cout << "new file: " << addedFileName << endl;
+    }
+
+    for (const pair<string, FileDiff>& diff : diffs) {
+      cout << "modified: " << diff.first << endl;
+    }
+    
+    for (const string& removedFile : removedFiles) {
+      cout << "deleted: " << removedFile << endl;
+    }
+  }
 }

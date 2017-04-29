@@ -48,6 +48,7 @@ class OperationAccumulator {
   void writeOutAddedFiles(std::ofstream& output,
 			  const std::vector<std::string>& addedFiles,
 			  const std::string& newCommitDirectoryPath) const;
+  void getAddedFiles(std::vector<std::string>& verifiedAddedFiles) const;
   
 public:
   OperationAccumulator();
@@ -65,6 +66,7 @@ public:
       const std::string& commitMessage, const std::vector<std::string>& addedFiles,
       const std::vector<std::string>& removedFiles,
       const std::vector<std::pair<std::string, FileDiff> >& diffs);
+  void getStatus() const;
 };
 
 #endif
