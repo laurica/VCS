@@ -44,6 +44,7 @@ class OperationAccumulator {
   std::string calculateFileLocationForHash(const CommitHash& hash) const;
   void writeBasicCommitInfo(std::ofstream& output, const std::string& newCommitFileName,
 			    const CommitHash& hash, const std::string& commitMessage) const;
+  void removeDeletedFilesFromLists(const std::vector<std::string>& removedFiles);
   
 public:
   OperationAccumulator();

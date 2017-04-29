@@ -38,3 +38,11 @@ const std::vector<DiffElement>& FileDiff::getInsertions() const {
 bool FileDiff::isEmptyDiff() const {
   return insertions.size() == 0 && deletions.size() == 0;
 }
+
+size_t FileDiff::getNumInsertions() const {
+  return insertions.size();
+}
+
+size_t FileDiff::getNumDeletions() const {
+  return deletions.size();
+}

@@ -16,6 +16,8 @@ class FileDiff {
   const std::vector<DiffElement>& getInsertions() const;
   void print(const std::string& path) const;
   bool isEmptyDiff() const;
+  size_t getNumInsertions() const;
+  size_t getNumDeletions() const;
 };
 
 #endif

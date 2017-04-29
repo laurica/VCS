@@ -291,6 +291,31 @@ void OperationAccumulator::writeBasicCommitInfo(
   output << "childCommits=[]\n";
 }
 
+static vector<string>::const_iterator vectorContains(
+    const vector<string>& myVector, string element) {
+  for (vector<string>::const_iterator it = myVector.begin(); it != myVector.end(); ++it) {
+    if ((*it) == element) {
+      return it;
+    }
+  }
+
+  return myVector.end();
+}
+
+void OperationAccumulator::removeDeletedFilesFromLists(const vector<string>& removedFiles) {
+  for (const string& removedFile : removedFiles) {
+    vector<string>::const_iterator location = vectorContains(trackedFiles, removedFile);
+    if (location != trackedFiles.end()) {
+      trackedFiles.erase(location);
+    }
+
+    location = vectorContains(addedFiles, removedFile);
+    if (location != addedFiles.end()) {
+      addedFiles.erase(location);
+    }
+  }
+}
+
 void OperationAccumulator::writeOutCommit(
     const string& commitMessage, const vector<string>& addedFiles,
     const vector<string>& removedFiles, const vector<pair<string, FileDiff> >& diffs) {
@@ -309,7 +334,8 @@ void OperationAccumulator::writeOutCommit(
 
     output << "addedFiles [" << addedFiles.size() << "]\n";
     for (string addedFile : addedFiles) {
-        output << addedFile << "\n";
+      cout << "Created file " << addedFile << endl;
+      output << addedFile << "\n";
     }
 
     // now write out the files themselves
@@ -327,14 +353,21 @@ void OperationAccumulator::writeOutCommit(
     // now write out the removed files
     output << "removedFiles [" << removedFiles.size() << "]\n";
     for (string removedFile : removedFiles) {
-        output << removedFile << "\n";
+      cout << "Removed file " << removedFile << endl;
+      output << removedFile << "\n";
     }
+
+    // Now remove the removed files from our added/tracked file lists
+    removeDeletedFilesFromLists(removedFiles);
 
     // write out which files have diffs
     output << "diffs [" << diffs.size() << "]\n";
     
     // now write out the diffs
     for (const pair<string, FileDiff>& diffInfo : diffs) {
+      cout << "Updating file " << diffInfo.first << " with " <<
+	diffInfo.second.getNumInsertions() << " insertions and " <<
+	diffInfo.second.getNumDeletions() << " deletions" << endl;
       vector<string> directories;
       FileSystemInterface::parseDirectoryStructure(diffInfo.first, directories);
       FileSystemInterface::createDirectories(newCommitDirectoryPath, directories);
