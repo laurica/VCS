@@ -8,6 +8,7 @@
 
 #include "CommitHash.h"
 #include "FileDiff.h"
+#include "Tree.h"
 
 class OperationAccumulator {
   enum FileName {
@@ -26,11 +27,12 @@ class OperationAccumulator {
   std::vector<std::string> trackedFiles;
   std::vector<std::string> addedFiles;
   
-  bool branchChanged;
   std::string curBranch;
 
   bool initialCommitPerformed;
   CommitHash curCommit;
+
+  Tree tree;
   
   void outputTrackedFiles() const;
   void outputAddedFiles() const;

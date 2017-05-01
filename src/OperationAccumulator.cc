@@ -11,7 +11,7 @@
 using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
-  projectInit(false), branchChanged(false), initialCommitPerformed(false), curCommit("") {
+  projectInit(false), initialCommitPerformed(false), curCommit("") {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::ADDED_FILES] = ".kil/.addedFiles.txt";
@@ -23,8 +23,8 @@ void OperationAccumulator::initializeProject(const std::string& fileName) {
   projectInit = true;
   projectName = fileName;
   
-  branchChanged = true;
   curBranch = "Master";
+  tree.initialize(curBranch);
 }
 
 bool OperationAccumulator::alreadyTracked(const string& fileName) const {
@@ -97,6 +97,9 @@ bool OperationAccumulator::outputBasicInfo() const {
   outputStream << "curBranch=" << curBranch << "\n";
   outputStream << "initialCommit=" << (initialCommitPerformed ? "true" : "false")  << "\n";
   if (initialCommitPerformed) {
+    // curCommit represents the current commit we're on whereas lastHash represents the
+    // last commit created
+    // These differ if you create a commit on one branch, then check out a different branch
     outputStream << "curCommit=" << curCommit.toString() << "\n";
     outputStream << "lastHash=" << CommitHash::getLatestGeneratedHash().toString() << "\n";
   }
@@ -279,6 +282,7 @@ void OperationAccumulator::writeBasicCommitInfo(
   output.open((newCommitFileName + ".txt").c_str(), fstream::out);
   output << "commitHash=" << hash.toString() << "\n";
   output << "commitMessage=\"" << commitMessage << "\"\n";
+  output << "branch=" << curBranch << "\n";
   output << "parentCommit=";
   if (initialCommitPerformed) {
     output << curCommit.toString();
@@ -461,4 +465,7 @@ void OperationAccumulator::getStatus() const {
 }
 
 void OperationAccumulator::createNewBranch(const string& newBranchName) {
+  // Tell our tree there is a new branch
+  curBranch = newBranchName;
+  tree.registerNewBranch(newBranchName);
 }

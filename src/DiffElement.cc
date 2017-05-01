@@ -16,7 +16,7 @@ DiffElement::DiffElement(const ElementType type,
 }
 
 void DiffElement::print(ostream& os) const {
-  os << (type == INSERTION ? "inserted" : "deleted") << " - " << baseStartingLine << "\n";
+  os << baseStartingLine << "\n";
   for (const string& line : lines) {
     os << line << "\n";
   }
