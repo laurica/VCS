@@ -21,7 +21,6 @@ class OperationAccumulator {
   std::map<FileName, const char *> fileNames;
   
   bool projectInit;
-  bool projectInitializedThisRun;
   std::string projectName;
 
   std::vector<std::string> trackedFiles;
@@ -67,6 +66,7 @@ public:
       const std::vector<std::string>& removedFiles,
       const std::vector<std::pair<std::string, FileDiff> >& diffs);
   void getStatus() const;
+  void createNewBranch(const std::string& newBranchName);
 };
 
 #endif

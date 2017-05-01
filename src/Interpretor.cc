@@ -61,26 +61,36 @@ void Interpretor::parseAdd(istringstream& input) const {
   }
 }
 
-void Interpretor::parseCommit(string command, istringstream& input) const {
-  string nextToken;
-  
+bool Interpretor::parseWithOrWithoutFlag(
+    istringstream& input, const string& targetFlag, string& nextToken, bool& flag) const {
   if (!(input >> nextToken)) {
     cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
-    return;
+    return false;
   }
 
-  bool addFlag = false;
+  flag = false;
   
-  if (nextToken == "-a") {
-    addFlag = true;
+  if (nextToken == targetFlag) {
+    flag = true;
     if (!(input >> nextToken)) {
       cout << errorMessages.at(NOT_ENOUGH_ARGS) << endl;
-      return;
+      return false;
     }
   }
 
   if (nextToken.at(0) == '-') {
     cout << errorMessages.at(UNRECOGNIZED_OPTION) << endl;
+    return false;
+  }
+
+  return true;
+}
+
+void Interpretor::parseCommit(string command, istringstream& input) const {
+  string nextToken;
+  bool addFlag;
+  
+  if (!parseWithOrWithoutFlag(input, "-a", nextToken, addFlag)) {
     return;
   }
   
@@ -95,7 +105,7 @@ void Interpretor::parseCommit(string command, istringstream& input) const {
   while ((input >> nextToken)) {
     once = true;
   }
-
+  
   if (once) {
     if (nextToken.at(nextToken.length() - 1) != '"') {
       cout << errorMessages.at(INVALID_COMMIT_MESSAGE) << endl;
@@ -118,7 +128,6 @@ void Interpretor::parseCommit(string command, istringstream& input) const {
   command = command.substr(0, command.find("\""));
 
   bool changesToCommit = accumulator.commit(command, addFlag);
-  
   if (!changesToCommit) {
     cout << errorMessages.at(NOTHING_TO_COMMIT) << endl;
   }
@@ -131,6 +140,18 @@ void Interpretor::parseStatus(istringstream& input) const {
   }
 
   accumulator.getStatus();
+}
+
+void Interpretor::parseCheckout(istringstream& input) const {
+  string nextToken;
+  bool newBranchFlag;
+  parseWithOrWithoutFlag(input, "-b", nextToken, newBranchFlag);
+
+  if (newBranchFlag) {
+    accumulator.createNewBranch(nextToken);
+  } else {
+    // accumulator.switchBranch()
+  }
 }
 
 void Interpretor::parseCommand(const string& command) const {
@@ -148,6 +169,8 @@ void Interpretor::parseCommand(const string& command) const {
       parseCommit(command, input);
     } else if (firstToken == "status") {
       parseStatus(input);
+    } else if (firstToken == "checkout") {
+      parseCheckout(input);
     } else {
       cout << errorMessages.at(UNRECOGNIZED_COMMAND) << endl;
     }

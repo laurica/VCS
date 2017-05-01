@@ -11,8 +11,7 @@
 using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
-  projectInit(false), projectInitializedThisRun(false), branchChanged(false),
-  initialCommitPerformed(false), curCommit("") {
+  projectInit(false), branchChanged(false), initialCommitPerformed(false), curCommit("") {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::ADDED_FILES] = ".kil/.addedFiles.txt";
@@ -22,7 +21,6 @@ OperationAccumulator::OperationAccumulator() :
 
 void OperationAccumulator::initializeProject(const std::string& fileName) {
   projectInit = true;
-  projectInitializedThisRun = true;
   projectName = fileName;
   
   branchChanged = true;
@@ -194,7 +192,7 @@ void OperationAccumulator::saveState() const {
     return;
   }
 
-  if (projectInitializedThisRun) {
+  if (projectInit) {
     if (!outputBasicInfo()) {
       return;
     }
@@ -460,4 +458,7 @@ void OperationAccumulator::getStatus() const {
       cout << "deleted: " << removedFile << endl;
     }
   }
+}
+
+void OperationAccumulator::createNewBranch(const string& newBranchName) {
 }

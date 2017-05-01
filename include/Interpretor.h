@@ -31,6 +31,10 @@ class Interpretor {
   bool parseOneArgument(std::istringstream& input, std::string& arg) const;
   void parseCommit(std::string command, std::istringstream& input) const;
   void parseStatus(std::istringstream& input) const;
+  void parseCheckout(std::istringstream& input) const;
+  bool parseWithOrWithoutFlag(
+      std::istringstream& input, const std::string& targetFlag,
+      std::string& thirdArg, bool& flag) const;
   
  public:
   Interpretor(OperationAccumulator& accumulator);
