@@ -7,9 +7,13 @@
 #include "TreeNode.h"
 
 class CommitNode : public TreeNode {
-    const CommitHash& hash;
+  const CommitHash& hash;
  public:
-    CommitNode(const std::string& branch, const CommitHash& hash);
+  CommitNode(const std::string& branch, const CommitHash& hash);
+  CommitNode(const std::string& branch,
+	     const std::string& hash,
+	     const size_t numChildren);
+  virtual std::string toString() const override;
 };
 
 #endif

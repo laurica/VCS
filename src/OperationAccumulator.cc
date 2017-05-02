@@ -17,6 +17,7 @@ OperationAccumulator::OperationAccumulator() :
   fileNames[FileName::ADDED_FILES] = ".kil/.addedFiles.txt";
   fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
   fileNames[FileName::COMMIT_DIR] = ".kil/.commits";
+  fileNames[FileName::TREE_FILE] = ".kil/.tree.txt";
 }
 
 void OperationAccumulator::initializeProject(const std::string& fileName) {
@@ -110,11 +111,10 @@ bool OperationAccumulator::outputBasicInfo() const {
   return true;
 }
 
-bool OperationAccumulator::readAddedAndTrackedFiles(const string& errorMessage) {
+bool OperationAccumulator::readAddedAndTrackedFiles() {
   // read in from the trackedFiles file
   if (!FileSystemInterface::fileExists(fileNames.at(FileName::TRACKED_FILES)) ||
       !FileSystemInterface::fileExists(fileNames.at(FileName::ADDED_FILES))) {
-    cout << errorMessage << endl;
     return false;
   }
 
@@ -133,6 +133,75 @@ bool OperationAccumulator::readAddedAndTrackedFiles(const string& errorMessage) 
   return true;
 }
 
+bool OperationAccumulator::readBasicInfo() {
+  size_t MIN_NUMBER_LINES = 3;
+  int PROJ_NAME_INDEX = 0;
+  int CUR_BRANCH_INDEX = 1;
+  int INITIAL_COMMIT_INDEX = 2;
+  int CUR_COMMIT_INDEX = 3;
+  int LAST_HASH_INDEX = 4;
+  size_t NUM_LINES_WITH_INIT_COMMIT = 5;
+  
+  // make sure that all of the information that needs to be there, is there
+  if (!(FileSystemInterface::fileExists(fileNames.at(FileName::BASIC_INFO)))) {
+    return false;
+  }
+
+  vector<string> lines;
+  FileParser::readFile(fileNames.at(FileName::BASIC_INFO), lines);
+  
+  if (lines.size() < MIN_NUMBER_LINES) {
+    return false;
+  }
+  
+  if (lines[PROJ_NAME_INDEX].find("projName=") != 0 ||
+      lines[PROJ_NAME_INDEX].substr(9).length() == 0 ||
+      lines[CUR_BRANCH_INDEX].find("curBranch=") != 0 ||
+      lines[CUR_BRANCH_INDEX].substr(10).length() == 0 ||
+      lines[INITIAL_COMMIT_INDEX].find("initialCommit=") != 0) {
+    return false;
+  }
+  
+  string initialCommitString = lines[INITIAL_COMMIT_INDEX].substr(14);
+  
+  if (initialCommitString != "true" && initialCommitString != "false") {
+    return false;
+  }
+
+  projectName = lines[PROJ_NAME_INDEX].substr(9);
+  curBranch = lines[CUR_BRANCH_INDEX].substr(10);
+  
+  initialCommitPerformed = initialCommitString == "true" ? true : false;
+
+  if (initialCommitPerformed) {
+    if (lines.size() != NUM_LINES_WITH_INIT_COMMIT ||
+	lines[CUR_COMMIT_INDEX].find("curCommit=") != 0 ||
+	lines[CUR_COMMIT_INDEX].substr(10).length() == 0 ||
+	lines[LAST_HASH_INDEX].find("lastHash=") != 0 ||
+	lines[LAST_HASH_INDEX].substr(9).length() == 0) {
+      return false;
+    }
+    curCommit = CommitHash(lines[CUR_COMMIT_INDEX].substr(10));
+    CommitHash::setSeed(lines[LAST_HASH_INDEX].substr(9));
+  }
+
+  return true;
+}
+
+bool OperationAccumulator::readTree() {
+  if (!(FileSystemInterface::fileExists(fileNames.at(FileName::TREE_FILE)))) {
+    return false;
+  }
+
+  vector<string> lines;
+  FileParser::readFile(fileNames.at(FileName::TREE_FILE), lines);
+  if (!tree.initializeTree(lines)) {
+    return false;
+  }
+  
+  return true;
+}
+
 bool OperationAccumulator::initialize() {
   // try and see if the .kil directory is created
   if (!(FileSystemInterface::fileExists(fileNames.at(FileName::MAIN_DIR)))) {
@@ -140,54 +209,31 @@ bool OperationAccumulator::initialize() {
   }
 
   projectInit = true;
-
-  const string error = "Error! KIL information tampered with or missing!";
   
-  // make sure that all of the information that needs to be there, is there
-  if (!(FileSystemInterface::fileExists(fileNames.at(FileName::BASIC_INFO)))) {
+  const string error = "Error! KIL information tampered with or missing!";
+  if (!readBasicInfo() || !readTree() || !readAddedAndTrackedFiles()) {
     cout << error << endl;
     return false;
   }
+
+  return true;
+}
+
+void OperationAccumulator::outputTree() const {
+  const string treeFileName = fileNames.at(FileName::TREE_FILE);
+
+  ofstream outputStream;
+  outputStream.open(treeFileName, fstream::out);
 
   vector<string> lines;
-  FileParser::readFile(fileNames.at(FileName::BASIC_INFO), lines);
+  tree.getPrintableTree(lines);
 
-  if (lines.size() < 3) {
-    cout << error << endl;
-    return false;
-  }
-
-  if (lines[0].find("projName=") != 0 || lines[0].substr(9).length() == 0 ||
-      lines[1].find("curBranch=") != 0 || lines[1].substr(10).length() == 0 ||
-      lines[2].find("initialCommit=") != 0) {
-    cout << error << endl;
-    return false;
+  for (const string& line : lines) {
+    outputStream << line << "\n";
   }
   
-  string initialCommitString = lines[2].substr(14);
-  
-  if (initialCommitString != "true" && initialCommitString != "false") {
-    cout << error << endl;
-    return false;
-  }
-
-  projectName = lines[0].substr(9);
-  curBranch = lines[1].substr(10);
-  
-  initialCommitPerformed = initialCommitString == "true" ? true : false;
-
-  if (initialCommitPerformed) {
-    if (lines.size() != 5 || lines[3].find("curCommit=") != 0 ||
-	lines[3].substr(10).length() == 0 || lines[4].find("lastHash=") != 0 ||
-	lines[4].substr(9).length() == 0) {
-      cout << error << endl;
-      return false;
-    }
-    curCommit = CommitHash(lines[3].substr(10));
-    CommitHash::setSeed(lines[4].substr(9));
-  }
-
-  return readAddedAndTrackedFiles(error);
+  outputStream.flush();
+  outputStream.close();
 }
 
 void OperationAccumulator::saveState() const {
@@ -195,14 +241,16 @@ void OperationAccumulator::saveState() const {
     return;
   }
 
-  if (projectInit) {
-    if (!outputBasicInfo()) {
-      return;
-    }
+
+  if (!outputBasicInfo()) {
+    return;
   }
 
+  // TODO:
+  // Check if any of these have been changes before blindly rewriting the info
   outputTrackedFiles();
   outputAddedFiles();
+  outputTree();
 }
 
 bool OperationAccumulator::isInitialized() const {
@@ -214,13 +262,15 @@ string OperationAccumulator::getCurBranchName() const {
 }
 
 void OperationAccumulator::calculateRemovalsAndDiffs(
-    vector<string>& removedFiles, vector<pair<string, FileDiff> >& diffs) const {
+    vector<string>& removedFiles,
+    vector<pair<string, FileDiff> >& diffs) const {
   for (const string& trackedFile : trackedFiles) {
     if (FileSystemInterface::fileExists(trackedFile.c_str())) {
       // calculate the location of the previous diff
       // path to version of file in previous commit will be commithash/filepath
       string previousCommitFileName =
-	FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR), curCommit.toString());
+	FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
+					curCommit.toString());
       previousCommitFileName =
 	FileSystemInterface::appendPath(previousCommitFileName, trackedFile);
       FileDiff diff =
@@ -239,7 +289,8 @@ void OperationAccumulator::createNewCommitDirectory(
     const string& newCommitDirectoryPath) const {
   if (!initialCommitPerformed) {
       vector<string> directories;
-      FileSystemInterface::parseDirectoryStructure(newCommitDirectoryPath, directories);
+      FileSystemInterface::parseDirectoryStructure(newCommitDirectoryPath,
+						   directories);
       FileSystemInterface::createDirectories("", directories);
     }
     
@@ -247,14 +298,17 @@ void OperationAccumulator::createNewCommitDirectory(
     FileSystemInterface::createDirectory(newCommitDirectoryPath.c_str());
 }
 
-string OperationAccumulator::calculateFileLocationForHash(const CommitHash& hash) const {
-  string path = FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR), hash.toString());
+string OperationAccumulator::calculateFileLocationForHash(
+    const CommitHash& hash) const {
+  string path =
+    FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR), hash.toString());
   path = FileSystemInterface::appendPath(path, hash.toString().c_str());
   path = path + ".txt";
   return path;
 }
 
-void OperationAccumulator::updateParentCommit(const CommitHash& childHash) const {
+void OperationAccumulator::updateParentCommit(
+    const CommitHash& childHash) const {
   const string path = calculateFileLocationForHash(curCommit);
   vector<string> fileContents;
   FileParser::readFile(path.c_str(), fileContents);
@@ -270,7 +324,8 @@ void OperationAccumulator::updateParentCommit(const CommitHash& childHash) const
     // this is the first child we're adding
     fileContents[3] = "childCommits=[" + childHash.toString() + "]";
   } else {
-    fileContents[3] = "childCommits=[" + listOfChildren + "," + childHash.toString() + "]";
+    fileContents[3] = "childCommits=[" + listOfChildren + "," +
+      childHash.toString() + "]";
   }
 
   FileWriter::writeFile(path.c_str(), fileContents);

@@ -16,7 +16,8 @@ class OperationAccumulator {
     BASIC_INFO,
     ADDED_FILES,
     TRACKED_FILES,
-    COMMIT_DIR
+    COMMIT_DIR,
+    TREE_FILE
   };
 
   std::map<FileName, const char *> fileNames;
@@ -39,17 +40,24 @@ class OperationAccumulator {
   bool outputBasicInfo() const;
   bool alreadyTracked(const std::string& fileName) const;
   void createDiff() const;
-  bool readAddedAndTrackedFiles(const std::string& errorMessage);
-  void createNewCommitDirectory(const std::string& newCommitDirectoryPath) const;
+  bool readAddedAndTrackedFiles();
+  void createNewCommitDirectory(
+      const std::string& newCommitDirectoryPath) const;
   void updateParentCommit(const CommitHash& childHash) const;
   std::string calculateFileLocationForHash(const CommitHash& hash) const;
-  void writeBasicCommitInfo(std::ofstream& output, const std::string& newCommitFileName,
-			    const CommitHash& hash, const std::string& commitMessage) const;
-  void removeDeletedFilesFromLists(const std::vector<std::string>& removedFiles);
+  void writeBasicCommitInfo(std::ofstream& output,
+			    const std::string& newCommitFileName,
+			    const CommitHash& hash,
+			    const std::string& commitMessage) const;
+  void removeDeletedFilesFromLists(
+      const std::vector<std::string>& removedFiles);
   void writeOutAddedFiles(std::ofstream& output,
 			  const std::vector<std::string>& addedFiles,
 			  const std::string& newCommitDirectoryPath) const;
   void getAddedFiles(std::vector<std::string>& verifiedAddedFiles) const;
+  void outputTree() const;
+  bool readBasicInfo();
+  bool readTree();
   
 public:
   OperationAccumulator();
@@ -64,7 +72,8 @@ public:
       std::vector<std::pair<std::string, FileDiff> >& diffs) const;
   bool commit(const std::string& commitMessage, const bool addFlag);
   void writeOutCommit(
-      const std::string& commitMessage, const std::vector<std::string>& addedFiles,
+      const std::string& commitMessage,
+      const std::vector<std::string>& addedFiles,
       const std::vector<std::string>& removedFiles,
       const std::vector<std::pair<std::string, FileDiff> >& diffs);
   void getStatus() const;
