@@ -6,14 +6,15 @@
 class CommitHash {
  private:
   static unsigned int curCommitCounter;
-  int myHash;
+  const int myHash;
 
  public:
   CommitHash();
-  CommitHash(const std::string& hash);
+  explicit CommitHash(const std::string& hash);
   std::string toString() const;
   static CommitHash getLatestGeneratedHash();
   static void setSeed(const std::string& lastHash);
+  static std::string getNullHash();
 };
 
 #endif

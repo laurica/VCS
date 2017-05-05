@@ -11,13 +11,17 @@
 using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
-  projectInit(false), initialCommitPerformed(false), curCommit("") {
+  projectInit(false), initialCommitPerformed(false), curCommit(NULL) {
   fileNames[FileName::MAIN_DIR] = ".kil";
   fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::ADDED_FILES] = ".kil/.addedFiles.txt";
   fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
   fileNames[FileName::COMMIT_DIR] = ".kil/.commits";
   fileNames[FileName::TREE_FILE] = ".kil/.tree.txt";
+}
+
+OperationAccumulator::~OperationAccumulator() {
+  delete curCommit;
 }
 
 void OperationAccumulator::initializeProject(const std::string& fileName) {
@@ -96,13 +100,16 @@ bool OperationAccumulator::outputBasicInfo() const {
 
   outputStream << "projName=" << projectName << "\n";
   outputStream << "curBranch=" << curBranch << "\n";
-  outputStream << "initialCommit=" << (initialCommitPerformed ? "true" : "false")  << "\n";
+  outputStream << "initialCommit=" <<
+    (initialCommitPerformed ? "true" : "false")  << "\n";
   if (initialCommitPerformed) {
-    // curCommit represents the current commit we're on whereas lastHash represents the
-    // last commit created
-    // These differ if you create a commit on one branch, then check out a different branch
-    outputStream << "curCommit=" << curCommit.toString() << "\n";
-    outputStream << "lastHash=" << CommitHash::getLatestGeneratedHash().toString() << "\n";
+    // curCommit represents the current commit we're on whereas lastHash
+    // represents the last commit created
+    // These differ if you create a commit on one branch, then check out a
+    // different branch
+    outputStream << "curCommit=" << curCommit->toString() << "\n";
+    outputStream << "lastHash=" <<
+      CommitHash::getLatestGeneratedHash().toString() << "\n";
   }
   
   outputStream << flush;
@@ -135,11 +142,11 @@ bool OperationAccumulator::readAddedAndTrackedFiles() {
 
 bool OperationAccumulator::readBasicInfo() {
   size_t MIN_NUMBER_LINES = 3;
-  int PROJ_NAME_INDEX = 0;
-  int CUR_BRANCH_INDEX = 1;
-  int INITIAL_COMMIT_INDEX = 2;
-  int CUR_COMMIT_INDEX = 3;
-  int LAST_HASH_INDEX = 4;
+  size_t PROJ_NAME_INDEX = 0;
+  size_t CUR_BRANCH_INDEX = 1;
+  size_t INITIAL_COMMIT_INDEX = 2;
+  size_t CUR_COMMIT_INDEX = 3;
+  size_t LAST_HASH_INDEX = 4;
   size_t NUM_LINES_WITH_INIT_COMMIT = 5;
   
   // make sure that all of the information that needs to be there, is there
@@ -181,7 +188,8 @@ bool OperationAccumulator::readBasicInfo() {
 	lines[LAST_HASH_INDEX].substr(9).length() == 0) {
       return false;
     }
-    curCommit = CommitHash(lines[CUR_COMMIT_INDEX].substr(10));
+    delete curCommit;
+    curCommit = new CommitHash(lines[CUR_COMMIT_INDEX].substr(10));
     CommitHash::setSeed(lines[LAST_HASH_INDEX].substr(9));
   }
 
@@ -194,12 +202,9 @@ bool OperationAccumulator::readTree() {
   }
 
   vector<string> lines;
-  FileParser::readFile(fileNames.at(FileName::TREE_FILE), lines);
-  if (!tree.initializeTree(lines)) {
-    return false;
-  }
+  FileParser::readFile(fileNames.at(FileName::TREE_FILE), lines);\
   
-  return true;
+  return tree.initializeTree(lines, curBranch, curCommit->toString());
 }
 
 bool OperationAccumulator::initialize() {
@@ -211,9 +216,10 @@ bool OperationAccumulator::initialize() {
   projectInit = true;
   
   const string error = "Error! KIL information tampered with or missing!";
+  
   if (!readBasicInfo() || !readTree() || !readAddedAndTrackedFiles()) {
-    cout << error << endl;
-    return false;
+     cout << error << endl;
+     return false;
   }
 
   return true;
@@ -270,7 +276,7 @@ void OperationAccumulator::calculateRemovalsAndDiffs(
       // path to version of file in previous commit will be commithash/filepath
       string previousCommitFileName =
 	FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
-					curCommit.toString());
+					curCommit->toString());
       previousCommitFileName =
 	FileSystemInterface::appendPath(previousCommitFileName, trackedFile);
       FileDiff diff =
@@ -309,22 +315,27 @@ string OperationAccumulator::calculateFileLocationForHash(
 
 void OperationAccumulator::updateParentCommit(
     const CommitHash& childHash) const {
-  const string path = calculateFileLocationForHash(curCommit);
+  size_t MIN_LINES_INFO = 8;
+  size_t CHILD_COMMIT_LINE = 4;
+  
+  const string path = calculateFileLocationForHash(*curCommit);
   vector<string> fileContents;
   FileParser::readFile(path.c_str(), fileContents);
   
-  assert(fileContents.size() >= 7);
-  assert(fileContents[3].find("childCommits=[") == 0);
-  assert(fileContents[3].at(fileContents[3].length() - 1) == ']');
+  assert(fileContents.size() >= MIN_LINES_INFO);
+  assert(fileContents[CHILD_COMMIT_LINE].find("childCommits=[") == 0);
+  assert(fileContents[CHILD_COMMIT_LINE].
+	 at(fileContents[CHILD_COMMIT_LINE].length() - 1) == ']');
 
-  string listOfChildren = fileContents[3].substr(14);
+  string listOfChildren = fileContents[CHILD_COMMIT_LINE].substr(14);
   listOfChildren = listOfChildren.substr(0, listOfChildren.size() - 1);
   
   if (listOfChildren.length() == 0) {
     // this is the first child we're adding
-    fileContents[3] = "childCommits=[" + childHash.toString() + "]";
+    fileContents[CHILD_COMMIT_LINE] = "childCommits=[" +
+      childHash.toString() + "]";
   } else {
-    fileContents[3] = "childCommits=[" + listOfChildren + "," +
+    fileContents[CHILD_COMMIT_LINE] = "childCommits=[" + listOfChildren + "," +
       childHash.toString() + "]";
   }
 
@@ -340,7 +351,7 @@ void OperationAccumulator::writeBasicCommitInfo(
   output << "branch=" << curBranch << "\n";
   output << "parentCommit=";
   if (initialCommitPerformed) {
-    output << curCommit.toString();
+    output << curCommit->toString();
   } else {
     output << "ROOT";
   }
@@ -350,7 +361,8 @@ void OperationAccumulator::writeBasicCommitInfo(
 
 static vector<string>::const_iterator vectorContains(
     const vector<string>& myVector, string element) {
-  for (vector<string>::const_iterator it = myVector.begin(); it != myVector.end(); ++it) {
+  for (vector<string>::const_iterator it = myVector.begin();
+       it != myVector.end(); ++it) {
     if ((*it) == element) {
       return it;
     }
@@ -359,9 +371,11 @@ static vector<string>::const_iterator vectorContains(
   return myVector.end();
 }
 
-void OperationAccumulator::removeDeletedFilesFromLists(const vector<string>& removedFiles) {
+void OperationAccumulator::removeDeletedFilesFromLists(const vector<string>&
+						       removedFiles) {
   for (const string& removedFile : removedFiles) {
-    vector<string>::const_iterator location = vectorContains(trackedFiles, removedFile);
+    vector<string>::const_iterator location =
+      vectorContains(trackedFiles, removedFile);
     if (location != trackedFiles.end()) {
       trackedFiles.erase(location);
     }
@@ -396,61 +410,67 @@ void OperationAccumulator::writeOutAddedFiles(
 
 void OperationAccumulator::writeOutCommit(
     const string& commitMessage, const vector<string>& addedFiles,
-    const vector<string>& removedFiles, const vector<pair<string, FileDiff> >& diffs) {
-    CommitHash hash;
+    const vector<string>& removedFiles,
+    const vector<pair<string, FileDiff> >& diffs) {
+  CommitHash * hash = new CommitHash();
 
-    string newCommitDirectoryPath =
-      FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
-				      hash.toString().c_str());
+  string newCommitDirectoryPath =
+    FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
+				    hash->toString().c_str());
+  
+  createNewCommitDirectory(newCommitDirectoryPath);
+  
+  ofstream output;
+  string newCommitFileName =
+    FileSystemInterface::appendPath(newCommitDirectoryPath,
+				    hash->toString().c_str());
+  writeBasicCommitInfo(output, newCommitFileName, *hash, commitMessage);
+  
+  writeOutAddedFiles(output, addedFiles, newCommitDirectoryPath);
+  
+  // now write out the removed files
+  output << "removedFiles [" << removedFiles.size() << "]\n";
+  for (string removedFile : removedFiles) {
+    cout << "Removed file " << removedFile << endl;
+    output << removedFile << "\n";
+  }
 
-    createNewCommitDirectory(newCommitDirectoryPath);
+  // Now remove the removed files from our added/tracked file lists
+  removeDeletedFilesFromLists(removedFiles);
+  
+  // write out which files have diffs
+  output << "diffs [" << diffs.size() << "]\n";
+  
+  // now write out the diffs
+  for (const pair<string, FileDiff>& diffInfo : diffs) {
+    cout << "Updating file " << diffInfo.first << " with " <<
+      diffInfo.second.getNumInsertions() << " insertions and " <<
+      diffInfo.second.getNumDeletions() << " deletions" << endl;
+    vector<string> directories;
+    FileSystemInterface::parseDirectoryStructure(diffInfo.first, directories);
+    FileSystemInterface::createDirectories(newCommitDirectoryPath,
+					   directories);
+    diffInfo.second.
+      print(FileSystemInterface::appendPath(newCommitDirectoryPath,
+					    diffInfo.first));
+  }
 
-    ofstream output;
-    string newCommitFileName =
-      FileSystemInterface::appendPath(newCommitDirectoryPath, hash.toString().c_str());
-    writeBasicCommitInfo(output, newCommitFileName, hash, commitMessage);
+  output.flush();
+  output.close();
 
-    writeOutAddedFiles(output, addedFiles, newCommitDirectoryPath);
-    
-    // now write out the removed files
-    output << "removedFiles [" << removedFiles.size() << "]\n";
-    for (string removedFile : removedFiles) {
-      cout << "Removed file " << removedFile << endl;
-      output << removedFile << "\n";
-    }
+  if (initialCommitPerformed) {
+    // update the parent commit
+    updateParentCommit(*hash);
+  }
 
-    // Now remove the removed files from our added/tracked file lists
-    removeDeletedFilesFromLists(removedFiles);
-
-    // write out which files have diffs
-    output << "diffs [" << diffs.size() << "]\n";
-    
-    // now write out the diffs
-    for (const pair<string, FileDiff>& diffInfo : diffs) {
-      cout << "Updating file " << diffInfo.first << " with " <<
-	diffInfo.second.getNumInsertions() << " insertions and " <<
-	diffInfo.second.getNumDeletions() << " deletions" << endl;
-      vector<string> directories;
-      FileSystemInterface::parseDirectoryStructure(diffInfo.first, directories);
-      FileSystemInterface::createDirectories(newCommitDirectoryPath, directories);
-      diffInfo.second.print(
-          FileSystemInterface::appendPath(newCommitDirectoryPath, diffInfo.first));
-    }
-
-    output.flush();
-    output.close();
-
-    if (initialCommitPerformed) {
-      // update the parent commit
-      updateParentCommit(hash);
-    }
-    
-    curCommit = hash;
+  delete curCommit;
+  curCommit = hash;
 }
 
-void OperationAccumulator::getAddedFiles(vector<string>& verifiedAddedFiles) const {
-  // Make sure that files that were added haven't been deleted in the time since they've
-  // been added
+void OperationAccumulator::getAddedFiles(vector<string>&
+					 verifiedAddedFiles) const {
+  // Make sure that files that were added haven't been deleted in the time since
+  // they've been added
   for (const string& addedFile : addedFiles) {
     if (FileSystemInterface::fileExists(addedFile.c_str())) {
       verifiedAddedFiles.push_back(addedFile);
@@ -458,20 +478,22 @@ void OperationAccumulator::getAddedFiles(vector<string>& verifiedAddedFiles) con
   }
 }
 
-bool OperationAccumulator::commit(const string& commitMessage, const bool addFlag) {  
+bool OperationAccumulator::commit(const string& commitMessage,
+				  const bool addFlag) {  
   vector<string> verifiedAddedFiles;
   
   if (addFlag) {
     getAddedFiles(verifiedAddedFiles);
   }
 
-  // Now found out which file have been deleted, and gets the diffs for the files that have
-  // been changed
+  // Now found out which file have been deleted, and gets the diffs for the
+  // files that have been changed
   vector<string> removedFiles;
   vector<pair<string, FileDiff> > diffs;
   calculateRemovalsAndDiffs(removedFiles, diffs);
 
-  if (verifiedAddedFiles.size() == 0 && removedFiles.size() == 0 && diffs.size() == 0) {
+  if (verifiedAddedFiles.size() == 0 && removedFiles.size() == 0 &&
+      diffs.size() == 0) {
     return false;
   }
 
@@ -487,6 +509,9 @@ bool OperationAccumulator::commit(const string& commitMessage, const bool addFla
   }
 
   initialCommitPerformed = true;
+
+  // curCommit has now been updated
+  tree.addCommit(*curCommit);
   
   return true;
 }
@@ -500,7 +525,8 @@ void OperationAccumulator::getStatus() const {
   vector<pair<string, FileDiff> > diffs;
   calculateRemovalsAndDiffs(removedFiles, diffs);
 
-  if (verifiedAddedFiles.size() == 0 && removedFiles.size() == 0 && diffs.size() == 0) {
+  if (verifiedAddedFiles.size() == 0 && removedFiles.size() == 0 &&
+      diffs.size() == 0) {
     cout << "No new changes to be commited!" << endl;
   } else {
     cout << "Changes to be committed:" << endl;

@@ -5,6 +5,9 @@
 
 using namespace std;
 
+// TODO:
+// Up and down arrows to cycle through commands
+
 Interpretor::Interpretor(OperationAccumulator& accumulator) :
   accumulator(accumulator) {
   errorMessages[NOT_ENOUGH_ARGS] = "Not enough arguments! Please try again.";

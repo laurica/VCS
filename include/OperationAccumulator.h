@@ -31,7 +31,7 @@ class OperationAccumulator {
   std::string curBranch;
 
   bool initialCommitPerformed;
-  CommitHash curCommit;
+  CommitHash * curCommit;
 
   Tree tree;
   
@@ -61,6 +61,7 @@ class OperationAccumulator {
   
 public:
   OperationAccumulator();
+  ~OperationAccumulator();
   bool addFile(const std::string& fileName);
   void initializeProject(const std::string& projectName);
   void saveState() const;

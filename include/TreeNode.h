@@ -19,6 +19,8 @@ class TreeNode {
   virtual std::string toString() const;
   std::vector<TreeNode*> getChildren() const;
   static TreeNode * createTreeNodeFromString(const std::string& nodeString);
+  std::string getBranch() const;
+  virtual std::string getCommitString() const;
   size_t getNumChildren();
 };
 

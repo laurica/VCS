@@ -1,5 +1,7 @@
+#include <iostream>
 #include <sstream>
 
+#include "CommitHash.h"
 #include "CommitNode.h"
 #include "TreeNode.h"
 
@@ -77,4 +79,12 @@ size_t TreeNode::getNumChildren() {
   }
 
   return children.size();
+}
+
+string TreeNode::getBranch() const {
+  return branch;
+}
+
+string TreeNode::getCommitString() const {
+  return CommitHash::getNullHash();
 }

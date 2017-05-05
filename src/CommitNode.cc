@@ -10,5 +10,10 @@ CommitNode::CommitNode(const string& branch, const string& hash,
   TreeNode(branch, numChildren), hash(CommitHash(hash)) {}
 
 string CommitNode::toString() const {
-  return "C " + branch + hash.toString() + to_string(children.size());
+  return "C " + branch + " " + hash.toString() + " " +
+    to_string(children.size());
+}
+
+string CommitNode::getCommitString() const {
+  return hash.toString();
 }
