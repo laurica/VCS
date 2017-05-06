@@ -204,7 +204,9 @@ bool OperationAccumulator::readTree() {
   vector<string> lines;
   FileParser::readFile(fileNames.at(FileName::TREE_FILE), lines);\
   
-  return tree.initializeTree(lines, curBranch, curCommit->toString());
+  return tree.initializeTree(lines, curBranch, curCommit == NULL ?
+			     CommitHash::getNullHash() :
+			     curCommit->toString());
 }
 
 bool OperationAccumulator::initialize() {
