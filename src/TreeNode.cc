@@ -88,3 +88,7 @@ string TreeNode::getBranch() const {
 string TreeNode::getCommitString() const {
   return CommitHash::getNullHash();
 }
+
+bool TreeNode::isNewBranchNode() const {
+  return true;
+}

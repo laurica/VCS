@@ -17,3 +17,7 @@ string CommitNode::toString() const {
 string CommitNode::getCommitString() const {
   return hash.toString();
 }
+
+bool CommitNode::isNewBranchNode() const {
+  return false;
+}

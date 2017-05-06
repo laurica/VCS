@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <iostream>
 #include <queue>
 
 #include "CommitNode.h"
@@ -57,7 +58,13 @@ bool Tree::determineCurrentNode(const string& branch, const string& commit) {
 
   while (!nodes.empty()) {
     TreeNode * node = nodes.front();
-    if (node->getBranch() == branch && node->getCommitString() == commit) {
+    if (node->isNewBranchNode()) {
+      if (node->getBranch() == branch) {
+	curNode = node;
+	return true;
+      }
+    } else if (node->getBranch() == branch &&
+	       node->getCommitString() == commit) {
       curNode = node;
       return true;
     }

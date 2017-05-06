@@ -22,6 +22,7 @@ class TreeNode {
   std::string getBranch() const;
   virtual std::string getCommitString() const;
   size_t getNumChildren();
+  virtual bool isNewBranchNode() const;
 };
 
 #endif

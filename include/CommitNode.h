@@ -15,6 +15,7 @@ class CommitNode : public TreeNode {
 	     const size_t numChildren);
   virtual std::string toString() const override;
   virtual std::string getCommitString() const override;
+  virtual bool isNewBranchNode() const override;
 };
 
 #endif
