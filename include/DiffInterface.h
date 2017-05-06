@@ -5,8 +5,8 @@
 
 class DiffInterface {
  public:
-  static FileDiff calculateFileDiff(
-      const char * previousCommitFileName, const char * fileName);
+  static FileDiff calculateFileDiff(const char * previousCommitFileName,
+				    const char * fileName);
 };
 
 #endif

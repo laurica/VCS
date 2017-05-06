@@ -24,3 +24,29 @@ void FileParser::readFile(const char * fileName, vector<string>& linesInFile) {
     linesInFile.push_back(line);
   }
 }
+
+bool FileParser::compareFiles(const char * firstFile, const char * secondFile) {
+  ifstream firstInput(firstFile);
+  ifstream secondInput(secondFile);
+
+  while (true) {
+    string firstLine;
+    string secondLine;
+    bool firstRead = (bool) getline(firstInput, firstLine);
+    bool secondRead = (bool) getline(secondInput, secondLine);
+
+    if (!firstRead && !secondRead) {
+      break;
+    }
+    
+    if (firstRead != secondRead) {
+      return false;
+    }
+
+    if (firstLine != secondLine) {
+      return false;
+    }
+  }
+
+  return true;
+}

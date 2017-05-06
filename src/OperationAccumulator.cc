@@ -564,14 +564,67 @@ void OperationAccumulator::getStatus() const {
 }
 
 void OperationAccumulator::createNewBranch(const string& newBranchName) {
+  if (!cleanState()) {
+    cout << "Please commit changes before checking out new branch!" << endl;
+    return;
+  }
+  
   // Tell our tree there is a new branch
   curBranch = newBranchName;
   tree.registerNewBranch(newBranchName);
   branches.insert(newBranchName);
 }
 
+bool OperationAccumulator::filesHaveBeenAdded() const {
+  for (const string& addedFile : addedFiles) {
+    if (FileSystemInterface::fileExists(addedFile.c_str())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool OperationAccumulator::filesHaveBeenRemovedOrModified() const {
+  for (const string& trackedFile : trackedFiles) {
+    if (FileSystemInterface::fileExists(trackedFile.c_str())) {
+      string previousCommitFileName =
+	FileSystemInterface::appendPath(fileNames.at(COMMIT_DIR),
+					curCommit->toString());
+      previousCommitFileName =
+	FileSystemInterface::appendPath(previousCommitFileName, trackedFile);
+      if (FileParser::compareFiles(previousCommitFileName.c_str(),
+				   trackedFile.c_str())) {
+	return true;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool OperationAccumulator::cleanState() const {
+  if (filesHaveBeenAdded() || filesHaveBeenRemovedOrModified()) {
+    return false;
+  }
+  
+  return true;
+}
+
 void OperationAccumulator::switchBranch(const string& branchName) {
-  // Check if the branch exists!!
+  // Check if the branch exists!
+  if (branches.count(branchName) == 0) {
+    cout << "No branch named " << branchName << " found!" << endl;
+    return;
+  }
   
   // Check there are no uncommitted changes!
+  if (!cleanState()) {
+    cout << "Please commit changes before checking out branch!" << endl;
+    return;
+  }
+
+  // If we're here, we can actually switch branches!
 }

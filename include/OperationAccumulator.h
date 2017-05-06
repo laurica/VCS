@@ -59,6 +59,9 @@ class OperationAccumulator {
   bool readTree();
   void outputBranches() const;
   bool readInBranches();
+  bool cleanState() const;
+  bool filesHaveBeenAdded() const;
+  bool filesHaveBeenRemovedOrModified() const;
   
 public:
   OperationAccumulator();

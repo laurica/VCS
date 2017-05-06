@@ -12,6 +12,8 @@ public:
 		       std::vector<Line>& linesInFile);
   static void readFile(const char * fileName,
 		       std::vector<std::string>& linesInFile);
+  // returns true if they are the same, false is they differ
+  static bool compareFiles(const char * firstFile, const char * secondFile);
 };
 
 #endif
