@@ -573,5 +573,5 @@ void OperationAccumulator::createNewBranch(const string& newBranchName) {
 void OperationAccumulator::switchBranch(const string& branchName) {
   // Check if the branch exists!
   
-  // Check there are no uncommitted changes
+  // Check there are no uncommitted changes!
 }
