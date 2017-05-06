@@ -153,7 +153,7 @@ void Interpretor::parseCheckout(istringstream& input) const {
   if (newBranchFlag) {
     accumulator.createNewBranch(nextToken);
   } else {
-    // accumulator.switchBranch()
+    accumulator.switchBranch(nextToken);
   }
 }
 

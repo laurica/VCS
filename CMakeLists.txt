@@ -16,7 +16,7 @@ SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -Wall" )
 # located under 'src/CMakeLists.txt'
 
 include_directories( 
-  "~/Projects/VCS/include" )
+  "./include" )
 
 SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
 

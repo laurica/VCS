@@ -4,6 +4,7 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "CommitHash.h"
@@ -12,28 +13,26 @@
 
 class OperationAccumulator {
   enum FileName {
-    MAIN_DIR,
-    BASIC_INFO,
     ADDED_FILES,
-    TRACKED_FILES,
+    BASIC_INFO,
+    BRANCH_LIST,
     COMMIT_DIR,
+    MAIN_DIR,
+    TRACKED_FILES,
     TREE_FILE
   };
-
-  std::map<FileName, const char *> fileNames;
   
   bool projectInit;
   std::string projectName;
-
-  std::vector<std::string> trackedFiles;
-  std::vector<std::string> addedFiles;
-  
   std::string curBranch;
-
   bool initialCommitPerformed;
   CommitHash * curCommit;
-
   Tree tree;
+
+  std::map<FileName, const char *> fileNames;
+  std::vector<std::string> trackedFiles;
+  std::vector<std::string> addedFiles;
+  std::unordered_set<std::string> branches;
   
   void outputTrackedFiles() const;
   void outputAddedFiles() const;
@@ -58,6 +57,8 @@ class OperationAccumulator {
   void outputTree() const;
   bool readBasicInfo();
   bool readTree();
+  void outputBranches() const;
+  bool readInBranches();
   
 public:
   OperationAccumulator();
@@ -79,6 +80,7 @@ public:
       const std::vector<std::pair<std::string, FileDiff> >& diffs);
   void getStatus() const;
   void createNewBranch(const std::string& newBranchName);
+  void switchBranch(const std::string& branchName);
 };
 
 #endif

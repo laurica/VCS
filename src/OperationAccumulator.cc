@@ -12,11 +12,12 @@ using namespace std;
 
 OperationAccumulator::OperationAccumulator() :
   projectInit(false), initialCommitPerformed(false), curCommit(NULL) {
-  fileNames[FileName::MAIN_DIR] = ".kil";
-  fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
   fileNames[FileName::ADDED_FILES] = ".kil/.addedFiles.txt";
-  fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
+  fileNames[FileName::BASIC_INFO] = ".kil/.basicInfo.txt";
+  fileNames[FileName::BRANCH_LIST] = ".kil/.branches.txt";
   fileNames[FileName::COMMIT_DIR] = ".kil/.commits";
+  fileNames[FileName::MAIN_DIR] = ".kil";
+  fileNames[FileName::TRACKED_FILES] = ".kil/.trackedFiles.txt";
   fileNames[FileName::TREE_FILE] = ".kil/.tree.txt";
 }
 
@@ -30,6 +31,7 @@ void OperationAccumulator::initializeProject(const std::string& fileName) {
   
   curBranch = "Master";
   tree.initialize(curBranch);
+  branches.insert("Master");
 }
 
 bool OperationAccumulator::alreadyTracked(const string& fileName) const {
@@ -58,32 +60,25 @@ bool OperationAccumulator::addFile(const string& fileName) {
   return false;
 }
 
-void OperationAccumulator::outputTrackedFiles() const {
-  string trackedFileConfigFileName = fileNames.at(FileName::TRACKED_FILES);
-
+static void outputVectorInfoToFile(const char * fileName,
+				   const vector<string>& lines) {
   ofstream outputStream;
-  outputStream.open(trackedFileConfigFileName, fstream::out);
-
-  for (string fileName : trackedFiles) {
-    outputStream << fileName << "\n";
+  outputStream.open(fileName, fstream::out);
+  
+  for (string line : lines) {
+    outputStream << line << "\n";
   }
   
   outputStream << flush;
   outputStream.close();
 }
 
-void OperationAccumulator::outputAddedFiles() const {
-  string addedFileConfigFileName = fileNames.at(FileName::ADDED_FILES);
+void OperationAccumulator::outputTrackedFiles() const {
+  outputVectorInfoToFile(fileNames.at(FileName::TRACKED_FILES), trackedFiles);
+}
 
-  ofstream outputStream;
-  outputStream.open(addedFileConfigFileName, fstream::out);
-  
-  for (string fileName : addedFiles) {
-    outputStream << fileName << "\n";
-  }
-  
-  outputStream << flush;
-  outputStream.close();
+void OperationAccumulator::outputAddedFiles() const {
+  outputVectorInfoToFile(fileNames.at(FileName::ADDED_FILES), addedFiles);
 }
 
 bool OperationAccumulator::outputBasicInfo() const {
@@ -116,6 +111,26 @@ bool OperationAccumulator::outputBasicInfo() const {
   outputStream.close();
 
   return true;
+}
+
+void OperationAccumulator::outputTree() const {
+  vector<string> lines;
+  tree.getPrintableTree(lines);
+  outputVectorInfoToFile(fileNames.at(FileName::TREE_FILE), lines);
+}
+
+void OperationAccumulator::outputBranches() const {
+  const string branchFileName = fileNames.at(FileName::BRANCH_LIST);
+
+  ofstream outputStream;
+  outputStream.open(branchFileName, fstream::out);
+
+  for (const string& branch : branches) {
+    outputStream << branch << "\n";
+  }
+
+  outputStream.flush();
+  outputStream.close();
 }
 
 bool OperationAccumulator::readAddedAndTrackedFiles() {
@@ -202,11 +217,27 @@ bool OperationAccumulator::readTree() {
   }
 
   vector<string> lines;
-  FileParser::readFile(fileNames.at(FileName::TREE_FILE), lines);\
+  FileParser::readFile(fileNames.at(FileName::TREE_FILE), lines);
   
   return tree.initializeTree(lines, curBranch, curCommit == NULL ?
 			     CommitHash::getNullHash() :
 			     curCommit->toString());
+}
+
+bool OperationAccumulator::readInBranches() {
+  if (!(FileSystemInterface::fileExists(fileNames.
+					  at(FileName::BRANCH_LIST)))) {
+    return false;
+  }
+
+  vector<string> lines;
+  FileParser::readFile(fileNames.at(FileName::BRANCH_LIST), lines);
+
+  for (const string& branchLine : lines) {
+    branches.insert(branchLine);
+  }
+
+  return true;
 }
 
 bool OperationAccumulator::initialize() {
@@ -219,29 +250,13 @@ bool OperationAccumulator::initialize() {
   
   const string error = "Error! KIL information tampered with or missing!";
   
-  if (!readBasicInfo() || !readTree() || !readAddedAndTrackedFiles()) {
+  if (!readBasicInfo() || !readTree() || !readAddedAndTrackedFiles() ||
+      !readInBranches()) {
      cout << error << endl;
      return false;
   }
 
   return true;
-}
-
-void OperationAccumulator::outputTree() const {
-  const string treeFileName = fileNames.at(FileName::TREE_FILE);
-
-  ofstream outputStream;
-  outputStream.open(treeFileName, fstream::out);
-
-  vector<string> lines;
-  tree.getPrintableTree(lines);
-
-  for (const string& line : lines) {
-    outputStream << line << "\n";
-  }
-  
-  outputStream.flush();
-  outputStream.close();
 }
 
 void OperationAccumulator::saveState() const {
@@ -259,6 +274,7 @@ void OperationAccumulator::saveState() const {
   outputTrackedFiles();
   outputAddedFiles();
   outputTree();
+  outputBranches();
 }
 
 bool OperationAccumulator::isInitialized() const {
@@ -551,4 +567,10 @@ void OperationAccumulator::createNewBranch(const string& newBranchName) {
   // Tell our tree there is a new branch
   curBranch = newBranchName;
   tree.registerNewBranch(newBranchName);
+  branches.insert(newBranchName);
+}
+
+void OperationAccumulator::switchBranch(const string& branchName) {
+  // Check if the branch exists
+  // Check there are no uncommitted changes
 }
