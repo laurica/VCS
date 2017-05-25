@@ -593,7 +593,7 @@ bool OperationAccumulator::filesHaveBeenRemovedOrModified() const {
 					curCommit->toString());
       previousCommitFileName =
 	FileSystemInterface::appendPath(previousCommitFileName, trackedFile);
-      if (FileParser::compareFiles(previousCommitFileName.c_str(),
+      if (!FileParser::compareFiles(previousCommitFileName.c_str(),
 				   trackedFile.c_str())) {
 	return true;
       }
